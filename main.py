@@ -1195,10 +1195,40 @@ async def login_submit(
         "role"
     ] = user["role"]
 
+    print(
+    	"LOGIN:",
+    	user["username"],
+    	user["role"]
+)
     return RedirectResponse(
         next_url,
         status_code=303,
     )
+@app.get("/debug-users")
+async def debug_users():
+
+    connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    try:
+
+        rows = connection.execute(
+            """
+            SELECT
+                username,
+                role,
+                expires_at,
+                is_active
+            FROM users
+            """
+        ).fetchall()
+
+        return rows
+
+    finally:
+
+        connection.close()
 
 @app.get("/logout")
 async def logout(request: Request):
