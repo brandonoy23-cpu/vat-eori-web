@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bulk VAT & EORI</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:32px 16px;background:#f3f5f7;color:#242424;font-family:Arial,sans-serif;line-height:1.5}.container{max-width:850px;margin:auto}.card{padding:30px;background:#fff;border:1px solid #ddd;border-radius:12px;box-shadow:0 5px 20px rgba(0,0,0,.08)}h1{margin-top:0;color:#0067b8}.info{padding:16px;background:#e8f3fb;border-left:4px solid #0067b8;border-radius:5px;margin:22px 0}label{display:block;font-weight:bold;margin-bottom:8px}input[type=file]{width:100%;padding:14px;border:1px solid #777;border-radius:5px}button{width:100%;margin-top:18px;padding:14px;background:#0067b8;color:#fff;border:0;border-radius:5px;font-size:16px;font-weight:bold;cursor:pointer}button:disabled{background:#777;cursor:wait}.warning{margin-top:18px;padding:14px;background:#fff4ce;border:1px solid #ca5010;border-radius:5px}.nav{margin-top:24px}.nav a{margin-right:18px;color:#0067b8;font-weight:bold;text-decoration:none}
+</style>
+</head>
+<body><main class="container"><section class="card">
+<h1>Bulk VAT &amp; EORI Verification</h1>
+<p>Ανέβασε αρχείο Excel με δύο στήλες: <strong>Country Code</strong> και <strong>VAT Number</strong>.</p>
+<div class="info"><strong>Τι θα γίνει:</strong><ul><li>Έλεγχος VAT μέσω VIES</li><li>Αυτόματη μετατροπή EL σε GR για EORI</li><li>Έλεγχος EORI</li><li>Άμεση λήψη νέου Excel με αποτελέσματα</li></ul></div>
+<form id="bulk-form" action="/process-excel" method="post" enctype="multipart/form-data">
+<label for="excel_file">Αρχείο .xlsx</label>
+<input id="excel_file" name="excel_file" type="file" accept=".xlsx" required>
+<button id="run-button" type="submit">Έναρξη μαζικού ελέγχου και λήψη Excel</button>
+</form>
+<div class="warning">Μέγιστο όριο: 200 εγγραφές. Για 19 εγγραφές ο έλεγχος μπορεί να διαρκέσει αρκετά δευτερόλεπτα ή λεπτά, ειδικά όταν η υπηρεσία EORI κάνει retries.</div>
+<nav class="nav"><a href="/">Μεμονωμένος έλεγχος</a><a href="/docs">API documentation</a><a href="/health">Health</a></nav>
+</section></main>
+<script>
+const form=document.getElementById('bulk-form');const button=document.getElementById('run-button');
+form.addEventListener('submit',()=>{button.disabled=true;button.textContent='Ο μαζικός έλεγχος εκτελείται... Μην κλείσεις τη σελίδα';setTimeout(()=>{button.disabled=false;button.textContent='Έναρξη νέου μαζικού ελέγχου'},180000);});
+</script></body></html>

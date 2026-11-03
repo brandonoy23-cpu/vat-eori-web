@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Bulk VAT & EORI Verification</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    padding:30px;
+
+    background:#cfd7e0;
+
+    font-family:Arial,sans-serif;
+    color:#242424;
+}
+
+.container{
+    width:90%;
+    max-width:1400px;
+    margin:auto;
+}
+
+.card{
+    background:white;
+
+    border-radius:18px;
+
+    padding:35px;
+
+    border:1px solid
+        rgba(0,0,0,.05);
+
+    box-shadow:
+        0 14px 35px
+        rgba(0,0,0,.12);
+}
+
+
+.header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+    gap:30px;
+
+    padding:24px;
+
+    margin-bottom:25px;
+
+    background:#eceff3;
+
+    border:1px solid #d5dce4;
+
+    border-radius:14px;
+
+    box-shadow:
+        inset 0 1px 0
+        rgba(255,255,255,.6);
+
+}
+
+
+.branding{
+    display:flex;
+    gap:20px;
+    align-items:center;
+}
+
+.branding img{
+    width:135px;
+    height:auto;
+
+    object-fit:contain;
+
+    filter:
+        drop-shadow(
+            0 4px 8px
+            rgba(0,0,0,.15)
+        );
+}
+.title-box{
+
+    padding:18px 24px;
+
+    background:white;
+
+    border:1px solid #e6d1b2;
+
+    border-radius:12px;
+
+    box-shadow:
+        0 3px 8px
+        rgba(0,0,0,.06);
+}
+
+.title-box h1{
+
+    margin:0;
+
+    color:#d97706;
+
+    font-size:38px;
+
+    font-weight:700;
+
+    letter-spacing:.3px;
+}
+.branding h1{
+
+    margin:0;
+
+    color:#20262e;
+
+    font-size:38px;
+
+    font-weight:700;
+
+    letter-spacing:.3px;
+}
+.branding p{
+    margin:6px 0 0;
+    color:#666;
+}
+
+.actions{
+    display:flex;
+    gap:10px;
+}
+
+.actions a{
+    text-decoration:none;
+    color:white;
+    padding:10px 16px;
+    border-radius:6px;
+    font-weight:bold;
+}
+
+.change-user{
+    background:#6f42c1;
+}
+
+.logout{
+    background:#d13438;
+}
+.mode-tabs{
+
+    display:flex;
+
+    gap:10px;
+
+    margin-bottom:25px;
+}
+
+.mode-tab{
+
+    flex:1;
+
+    text-align:center;
+
+    padding:12px 16px;
+
+    border-radius:10px;
+
+    text-decoration:none;
+
+    font-weight:bold;
+
+    border:1px solid #d7dfe8;
+
+    background:white;
+
+    color:#4a5565;
+
+    transition:all .15s ease;
+}
+
+.mode-tab:hover{
+
+    background:#f4f7fb;
+}
+
+.mode-tab.active{
+
+    background:linear-gradient(
+        135deg,
+        #5c2d91,
+        #7742b5
+    );
+
+    color:white;
+
+    border-color:#5c2d91;
+}
+
+
+.info{
+    margin-bottom:18px;
+    padding:10px 14px;
+    border-left:4px solid #0067b8;
+    background:#eef6fc;
+    border-radius:6px;
+}
+.paste-card{
+
+    margin-top:25px;
+
+    padding:20px;
+
+    background:white;
+
+    border:1px solid
+        rgba(0,0,0,.08);
+
+    border-radius:10px;
+}
+
+.paste-card h3{
+
+    margin-top:0;
+
+    color:#0067b8;
+}
+
+
+.paste-card select{
+
+    width:100%;
+
+    padding:12px;
+
+    border:1px solid #ccc;
+
+    border-radius:6px;
+
+    font-size:15px;
+
+    background:white;
+
+    cursor:pointer;
+}
+.paste-card textarea{
+
+    width:100%;
+
+    margin-top:10px;
+
+    padding:12px;
+
+    border:1px solid #ccc;
+
+    border-radius:6px;
+
+    font-family:Consolas, monospace;
+
+    resize:vertical;
+}
+.vat-counter{
+
+    margin-top:8px;
+
+    text-align:right;
+
+    color:#666;
+
+    font-size:13px;
+
+    font-weight:bold;
+}
+
+label{
+    display:block;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+
+input[type=file]{
+    width:100%;
+    padding:15px;
+    border:1px solid #cccccc;
+    border-radius:6px;
+    font-size:15px;
+}
+
+.run-button{
+    width:100%;
+    margin-top:20px;
+    border:none;
+    border-radius:6px;
+    background:#0067b8;
+    color:white;
+    padding:15px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.run-button:hover{
+    background:#005a9e;
+}
+
+.run-button:disabled{
+    background:#888;
+    cursor:wait;
+}
+.progress-wrapper {
+    display: none;
+    margin-top: 24px;
+    padding: 22px;
+    background: linear-gradient(
+        135deg,
+        #f7f5ff 0%,
+        #eef6ff 100%
+    );
+    border: 1px solid #d8d2ef;
+    border-radius: 14px;
+    box-shadow:
+        0 8px 22px
+        rgba(40, 55, 90, 0.08);
+}
+
+.progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 14px;
+}
+
+#progress-title {
+    color: #26364a;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+#progress-percentage {
+    min-width: 64px;
+    padding: 6px 10px;
+    color: #ffffff;
+    background: #5c2d91;
+    border-radius: 999px;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.progress-bar {
+    position: relative;
+    width: 100%;
+    height: 18px;
+    background: #dfe5ec;
+    border: 1px solid #cbd3dc;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.clear-button {
+
+    width:100%;
+
+    margin-top:10px;
+
+    background:#6c757d;
+
+    color:white;
+
+    border:none;
+
+    border-radius:10px;
+
+    padding:12px;
+
+    font-size:14px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+}
+
+.clear-button:hover {
+
+    background:#5a6268;
+}
+.progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        #5c2d91 0%,
+        #7b3fc7 35%,
+        #0078d4 75%,
+        #00a4c7 100%
+    );
+    border-radius: 999px;
+    box-shadow:
+        0 0 14px
+        rgba(92, 45, 145, 0.32);
+    transition:
+        width 0.4s ease,
+        background 0.3s ease;
+}
+
+.progress-fill::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 45%;
+    background:
+        rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+}
+
+.progress-details {
+    margin-top: 12px;
+    color: #637083;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.progress-wrapper.completed {
+    background: linear-gradient(
+        135deg,
+        #f1fbf0 0%,
+        #e7f7e5 100%
+    );
+    border-color: #88c880;
+}
+
+.progress-wrapper.completed #progress-title {
+    color: #155d16;
+}
+
+.progress-wrapper.completed #progress-percentage {
+    background: #107c10;
+}
+
+.progress-wrapper.completed .progress-fill {
+    background: linear-gradient(
+        90deg,
+        #107c10 0%,
+        #45a33d 60%,
+        #6fbd54 100%
+    );
+    box-shadow:
+        0 0 14px
+        rgba(16, 124, 16, 0.28);
+}
+.new-search-btn{
+
+    margin-top:10px;
+
+    background:#0067b8;
+
+    color:white;
+
+    border:none;
+
+    border-radius:6px;
+
+    padding:10px 16px;
+
+    cursor:pointer;
+
+    font-weight:bold;
+}
+
+.new-search-btn:hover{
+
+    background:#005a9e;
+}
+.success-box{
+    display:none;
+    margin-top:20px;
+    padding:15px;
+    background:#dff6dd;
+    border:1px solid #107c10;
+    border-radius:6px;
+    color:#0f5d0f;
+    font-weight:bold;
+}
+.status{
+    display:none;
+    margin-top:25px;
+    padding:15px;
+    border-radius:6px;
+}
+
+.processing{
+    display:block;
+    background:#eef6fc;
+    border:1px solid #0067b8;
+}
+
+.success{
+    display:block;
+    background:#dff6dd;
+    border:1px solid #107c10;
+    color:#0b5a08;
+}
+
+.failure{
+    display:block;
+    background:#fde7e9;
+    border:1px solid #c50f1f;
+    color:#721c24;
+}
+
+.spinner{
+    width:18px;
+    height:18px;
+    display:inline-block;
+    margin-right:10px;
+    border:3px solid #c2dff4;
+    border-top-color:#0067b8;
+    border-radius:50%;
+    animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+    to{
+        transform:rotate(360deg);
+    }
+}
+.summary-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+    margin-top:25px;
+}
+
+.kpi-card{
+    background:white;
+    border-radius:12px;
+    border:1px solid rgba(0,0,0,.08);
+    box-shadow:
+        0 4px 12px rgba(0,0,0,.05);
+
+    padding:18px;
+
+    text-align:center;
+}
+
+.kpi-title{
+    font-size:13px;
+    color:#666;
+    margin-bottom:10px;
+}
+
+.kpi-value{
+    font-size:30px;
+    font-weight:bold;
+}
+
+.kpi-blue{
+    color:#0067b8;
+}
+
+.kpi-green{
+    color:#107c10;
+}
+
+.kpi-orange{
+    color:#ca5010;
+}
+
+.kpi-red{
+    color:#c50f1f;
+}
+.warning{
+    margin-top:20px;
+    padding:14px;
+    background:#fff4ce;
+    border:1px solid #ca5010;
+    border-radius:6px;
+}
+
+.nav{
+    margin-top:25px;
+    border-top:1px solid #ddd;
+    padding-top:20px;
+}
+
+.nav a{
+    margin-right:20px;
+    color:#0067b8;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+.nav a:hover{
+    text-decoration:underline;
+}
+.bulk-message {
+    display: none;
+    position: relative;
+    margin-top: 18px;
+    padding: 17px 18px 17px 48px;
+    border-radius: 12px;
+    line-height: 1.55;
+    box-shadow:
+        0 6px 16px
+        rgba(30, 45, 70, 0.07);
+}
+
+.bulk-message::before {
+    position: absolute;
+    top: 16px;
+    left: 17px;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.bulk-message.processing {
+    display: block;
+    color: #274762;
+    background: linear-gradient(
+        135deg,
+        #f2f8fe,
+        #e9f4fc
+    );
+    border: 1px solid #b7d8ef;
+    border-left: 5px solid #0078d4;
+}
+
+.bulk-message.processing::before {
+    content: "⏳";
+}
+
+.bulk-message.completed {
+    display: block;
+    color: #174f16;
+    background: linear-gradient(
+        135deg,
+        #f2fbf0,
+        #e8f7e5
+    );
+    border: 1px solid #86c77d;
+    border-left: 5px solid #107c10;
+}
+
+.bulk-message.completed::before {
+    content: "✓";
+    color: #107c10;
+}
+
+.bulk-message.failed {
+    display: block;
+    color: #721c24;
+    background: linear-gradient(
+        135deg,
+        #fff4f5,
+        #fdebed
+    );
+    border: 1px solid #e6a4aa;
+    border-left: 5px solid #c50f1f;
+}
+
+.bulk-message.failed::before {
+    content: "!";
+    color: #c50f1f;
+}
+
+.bulk-message:empty {
+    display: none;
+}
+@media(max-width:800px){
+
+    .header{
+        flex-direction:column;
+    }
+
+    .branding{
+        flex-direction:column;
+        text-align:center;
+    }
+
+    .actions{
+        width:100%;
+    }
+
+    .actions a{
+        flex:1;
+        text-align:center;
+    }
+}
+.language-switch{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    align-items:center;
+
+    gap:10px;
+
+    margin-bottom:10px;
+
+    font-size:14px;
+}
+
+.language-switch a{
+
+    color:#0067b8;
+
+    font-weight:bold;
+
+    text-decoration:none;
+}
+
+.language-switch a:hover{
+
+    text-decoration:underline;
+}
+
+.language-switch span{
+
+    color:#999;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+
+
+<header class="header">
+
+    <div class="branding">
+
+        <img
+            src="/static/images/logo.png"
+            alt="OpsCore Solutions"
+        >
+
+        <div>
+
+           
+    <h1>
+        Bulk VAT & EORI Verification
+    </h1>
+
+
+
+
+            
+
+        </div>
+
+    </div>
+
+    <div>
+
+        <div class="language-switch">
+
+            <a href="/set-language/el">
+                Ελληνικά
+            </a>
+
+            <span>|</span>
+
+            <a href="/set-language/en">
+                English
+            </a>
+
+        </div>
+
+        <div class="actions">
+
+            <a
+                href="/change-user"
+                class="change-user"
+            >
+                Αλλαγή χρήστη
+            </a>
+
+            <a
+                href="/logout"
+                class="logout"
+            >
+                Αποσύνδεση
+            </a>
+
+        </div>
+
+    </div>
+
+</header>
+
+<div class="mode-tabs">
+
+    <a
+        href="/excel"
+        class="mode-tab active"
+    >
+        Μαζικός Έλεγχος
+    </a>
+
+    <a
+        href="/"
+        class="mode-tab"
+    >
+        Μεμονωμένος Έλεγχος
+    </a>
+
+</div>
+
+<div class="paste-card">
+
+    
+
+    <label for="country_code_bulk">
+        Χώρα
+    </label>
+
+    <select
+        id="country_code_bulk"
+        name="country_code_bulk"
+    >
+
+        <option value="EL" selected>
+        Greece (EL)
+    </option>
+
+    <option value="AT">
+        Austria (AT)
+    </option>
+
+    <option value="BE">
+        Belgium (BE)
+    </option>
+
+    <option value="BG">
+        Bulgaria (BG)
+    </option>
+
+    <option value="HR">
+        Croatia (HR)
+    </option>
+
+    <option value="CY">
+        Cyprus (CY)
+    </option>
+
+    <option value="CZ">
+        Czech Republic (CZ)
+    </option>
+
+    <option value="DK">
+        Denmark (DK)
+    </option>
+
+    <option value="EE">
+        Estonia (EE)
+    </option>
+
+    <option value="FI">
+        Finland (FI)
+    </option>
+
+    <option value="FR">
+        France (FR)
+    </option>
+
+    <option value="DE">
+        Germany (DE)
+    </option>
+
+    <option value="HU">
+        Hungary (HU)
+    </option>
+
+    <option value="IE">
+        Ireland (IE)
+    </option>
+
+    <option value="IT">
+        Italy (IT)
+    </option>
+
+    <option value="LV">
+        Latvia (LV)
+    </option>
+
+    <option value="LT">
+        Lithuania (LT)
+    </option>
+
+    <option value="LU">
+        Luxembourg (LU)
+    </option>
+
+    <option value="MT">
+        Malta (MT)
+    </option>
+
+    <option value="NL">
+        Netherlands (NL)
+    </option>
+
+    <option value="PL">
+        Poland (PL)
+    </option>
+
+    <option value="PT">
+        Portugal (PT)
+    </option>
+
+    <option value="RO">
+        Romania (RO)
+    </option>
+
+    <option value="SK">
+        Slovakia (SK)
+    </option>
+
+    <option value="SI">
+        Slovenia (SI)
+    </option>
+
+    <option value="ES">
+        Spain (ES)
+    </option>
+
+    <option value="SE">
+        Sweden (SE)
+    </option>
+
+    </select>
+
+    <label
+        for="bulk_vat_list"
+        style="margin-top:15px;"
+    >
+        Αριθμοί Α.Φ.Μ
+    </label>
+
+<textarea
+    id="bulk_vat_list"
+    rows="10"
+    placeholder="123456789
+987654321
+111222333
+
+ή
+
+EL123456789
+EL987654321
+
+ή
+
+123456789,987654321
+
+έως 100 VAT ανά εκτέλεση"
+></textarea>
+<div
+    id="vat-counter"
+    class="vat-counter"
+>
+    0 / 100 VATs
+</div>
+
+
+    <button
+        type="button"
+        id="bulk-run-button"
+        class="run-button"
+    >
+        Εκτέλεση λίστας Α.Φ.Μ
+    </button>
+<button
+    type="button"
+    id="clear-vat-list"
+    class="clear-button"
+>
+    Καθαρισμός φόρμας
+</button>
+
+</div>
+
+
+
+<div
+    id="progress-wrapper"
+    class="progress-wrapper"
+>
+    <div class="progress-header">
+
+        <span id="progress-title">
+            Ο έλεγχος εκτελείται...
+        </span>
+
+        <strong id="progress-percentage">
+            0%
+        </strong>
+
+    </div>
+
+    <div class="progress-bar">
+
+        <div
+            id="progress-fill"
+            class="progress-fill"
+        ></div>
+
+    </div>
+
+    <div
+        id="progress-details"
+        class="progress-details"
+    >
+        0 / 0 ολοκληρώθηκαν
+    </div>
+
+<div
+    id="progress-time"
+    class="progress-details"
+>
+    Χρόνος: 00:00
+</div>
+</div>
+
+<div
+    id="success-box"
+    class="success-box"
+>
+    ✅ Ο έλεγχος ολοκληρώθηκε επιτυχώς.
+
+    <br><br>
+
+    ✅ Το αρχείο αποτελεσμάτων
+    κατέβηκε στον υπολογιστή σας.
+
+    <br><br>
+
+    <button
+        type="button"
+        class="new-search-btn"
+        onclick="window.location.reload();"
+    >
+        Νέα αναζήτηση
+    </button>
+</div>
+
+<div
+    id="bulk-message"
+    class="bulk-message"
+></div>
+
+<div class="warning">
+
+Έχεις δυνατότητα εισαγωγής έως
+100 VAT numbers ανά εκτέλεση.
+
+Μην κλείσεις ή ανανεώσεις τη σελίδα
+όσο εκτελείται ο έλεγχος.
+
+</div>
+
+
+</div>
+
+</div>
+
+<script>
+
+const form =
+document.getElementById("bulk-form");
+
+const clearButton =
+    document.getElementById(
+        "clear-vat-list"
+    );
+
+const button =
+document.getElementById("run-button");
+
+const fileInput =
+document.getElementById("excel_file");
+
+const vatCounter =
+document.getElementById(
+    "vat-counter"
+);
+
+const progressWrapper =
+document.getElementById(
+    "progress-wrapper"
+);
+
+const progressFill =
+document.getElementById(
+    "progress-fill"
+);
+const progressPercentage =
+    document.getElementById(
+        "progress-percentage"
+    );
+
+const progressDetails =
+    document.getElementById(
+        "progress-details"
+    );
+
+const progressTime =
+    document.getElementById(
+        "progress-time"
+    );
+const progressTitle =
+    document.getElementById(
+        "progress-title"
+    );
+
+const successBox =
+document.getElementById(
+    "success-box"
+);
+
+const bulkButton =
+document.getElementById(
+    "bulk-run-button"
+);
+
+const bulkVatList =
+document.getElementById(
+    "bulk_vat_list"
+);
+
+const countrySelect =
+document.getElementById(
+    "country_code_bulk"
+);
+
+const bulkMessage =
+document.getElementById(
+    "bulk-message"
+);
+
+/* Counter */
+
+if (
+    bulkVatList &&
+    vatCounter
+) {
+
+    bulkVatList.addEventListener(
+        "input",
+        function () {
+
+            const rows =
+                bulkVatList.value
+                    .split("\n")
+                    .filter(
+                        row =>
+                            row.trim() !== ""
+                    );
+
+            vatCounter.textContent =
+                rows.length +
+                " / 100 VATs";
+
+            if (
+                rows.length > 100
+            ) {
+
+                vatCounter.style.color =
+                    "#c50f1f";
+
+            }
+            else {
+
+                vatCounter.style.color =
+                    "#666";
+
+            }
+
+        }
+    );
+
+}
+if(
+    clearButton
+){
+    clearButton.addEventListener(
+        "click",
+        function(){
+
+            bulkVatList.value = "";
+
+            vatCounter.textContent =
+                "0 / 100 VATs";
+
+            bulkMessage.innerHTML =
+                "";
+
+            bulkMessage.className =
+                "bulk-message";
+
+            progressWrapper.style.display =
+                "none";
+
+            successBox.style.display =
+                "none";
+
+        }
+    );
+}
+
+/* Bulk list button */
+
+if (
+    bulkButton &&
+    bulkVatList &&
+    bulkMessage &&
+    countrySelect &&
+    progressWrapper &&
+    progressFill &&
+    progressPercentage &&
+    progressDetails &&
+    progressTitle
+) {
+    bulkButton.addEventListener(
+        "click",
+        async function () {
+            const rows =
+                bulkVatList.value
+                    .split("\n")
+                    .map(
+                        function (item) {
+                            return item.trim();
+                        }
+                    )
+                    .filter(
+                        function (item) {
+                            return item !== "";
+                        }
+                    );
+
+            if (rows.length === 0) {
+                alert(
+                    "Δεν υπάρχουν VAT numbers."
+                );
+
+                return;
+            }
+
+            if (rows.length > 100) {
+                alert(
+                    "Μέγιστο 100 VAT numbers ανά εκτέλεση."
+                );
+
+                return;
+            }
+
+            bulkButton.disabled = true;
+
+            bulkButton.textContent =
+                "Δημιουργία εργασίας...";
+
+            if (successBox) {
+                successBox.style.display =
+                    "none";
+            }
+
+            progressWrapper.style.display =
+                "block";
+
+            progressWrapper.classList.remove(
+                "completed"
+            );
+
+            progressFill.style.width =
+                "0%";
+	    const startedAt =
+   		 Date.now();
+
+            progressPercentage.textContent =
+                "0%";
+
+            progressDetails.textContent =
+                "0 / "
+                + rows.length
+                + " ολοκληρώθηκαν";
+
+            progressTitle.textContent =
+                "Δημιουργείται η εργασία...";
+
+            bulkMessage.className =
+                "bulk-message processing";
+
+            bulkMessage.innerHTML =
+                "⏳ Προετοιμασία ελέγχου...";
+
+            try {
+                const startResponse =
+                    await fetch(
+                        "/start-vat-list-job",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify(
+                                {
+                                    country:
+                                        countrySelect.value,
+
+                                    vats:
+                                        rows
+                                }
+                            )
+                        }
+                    );
+
+                if (startResponse.status === 401) {
+                    window.location.href =
+                        "/login?next_url=/excel";
+
+                    return;
+                }
+
+                if (!startResponse.ok) {
+                    let message =
+                        "Δεν δημιουργήθηκε η εργασία.";
+
+                    try {
+                        const errorData =
+                            await startResponse.json();
+
+                        message =
+                            errorData.detail ||
+                            message;
+
+                    } catch {
+                        const errorText =
+                            await startResponse.text();
+
+                        if (errorText) {
+                            message =
+                                errorText;
+                        }
+                    }
+
+                    throw new Error(
+                        message
+                    );
+                }
+
+                const startData =
+                    await startResponse.json();
+
+                const jobId =
+                    startData.job_id;
+
+                if (!jobId) {
+                    throw new Error(
+                        "Δεν επιστράφηκε job ID."
+                    );
+                }
+
+                bulkButton.textContent =
+                    "Ο έλεγχος εκτελείται...";
+
+                progressTitle.textContent =
+                    "Ο έλεγχος εκτελείται...";
+
+                bulkMessage.className =
+                    "bulk-message processing";
+
+                bulkMessage.innerHTML =
+                    "Μην κλείσεις ή ανανεώσεις "
+                    + "τη σελίδα.";
+
+                let completed = false;
+
+                while (!completed) {
+                    await new Promise(
+                        function (resolve) {
+                            setTimeout(
+                                resolve,
+                                1000
+                            );
+                        }
+                    );
+
+                    const statusResponse =
+                        await fetch(
+                            "/job-status/"
+                            + jobId,
+                            {
+                                method: "GET",
+                                cache: "no-store"
+                            }
+                        );
+
+                    if (
+                        statusResponse.status ===
+                        401
+                    ) {
+                        window.location.href =
+                            "/login?next_url=/excel";
+
+                        return;
+                    }
+
+                    if (!statusResponse.ok) {
+                        throw new Error(
+                            "Δεν ήταν δυνατή η "
+                            + "ανάγνωση της προόδου."
+                        );
+                    }
+
+                    const job =
+                        await statusResponse.json();
+
+                    const processed =
+                        Number(
+                            job.processed_rows ||
+                            0
+                        );
+
+                    const total =
+                        Number(
+                            job.total_rows ||
+                            rows.length
+                        );
+
+                    let percentage =
+                        Number(
+                            job.percentage ||
+                            0
+                        );
+
+                    if (
+                        !Number.isFinite(
+                            percentage
+                        )
+                    ) {
+                        percentage = 0;
+                    }
+
+                    percentage =
+                        Math.max(
+                            0,
+                            Math.min(
+                                100,
+                                percentage
+                            )
+                        );
+
+                    progressFill.style.width =
+                        percentage + "%";
+
+                    progressPercentage.textContent =
+                        percentage + "%";
+
+                    progressDetails.textContent =
+                        processed
+                        + " / "
+                        + total
+                        + " ολοκληρώθηκαν";
+const elapsedSeconds =
+    Math.floor(
+        (
+            Date.now()
+            - startedAt
+        ) / 1000
+    );
+
+const minutes =
+    String(
+        Math.floor(
+            elapsedSeconds / 60
+        )
+    ).padStart(
+        2,
+        "0"
+    );
+
+const seconds =
+    String(
+        elapsedSeconds % 60
+    ).padStart(
+        2,
+        "0"
+    );
+
+progressTime.textContent =
+    "Χρόνος: "
+    + minutes
+    + ":"
+    + seconds;
+
+                    if (
+                        job.status ===
+                        "FAILED"
+                    ) {
+                        throw new Error(
+                            job.error_message ||
+                            "Η εργασία απέτυχε."
+                        );
+                    }
+
+                    if (
+                        job.status ===
+                        "COMPLETED"
+                    ) {
+                        completed = true;
+                    }
+                }
+
+                progressFill.style.width =
+                    "100%";
+
+                progressPercentage.textContent =
+                    "100%";
+
+                progressDetails.textContent =
+                    rows.length
+                    + " / "
+                    + rows.length
+                    + " ολοκληρώθηκαν";
+
+                progressTitle.textContent =
+                    "Ο έλεγχος ολοκληρώθηκε";
+
+                progressWrapper.classList.add(
+                    "completed"
+                );
+
+                bulkMessage.className =
+                    "bulk-message processing";
+
+                bulkMessage.innerHTML =
+                    "⏳ Προετοιμασία λήψης Excel...";
+
+                const downloadResponse =
+                    await fetch(
+                        "/download-job/"
+                        + jobId,
+                        {
+                            method: "GET",
+                            cache: "no-store"
+                        }
+                    );
+
+                if (
+                    downloadResponse.status ===
+                    401
+                ) {
+                    window.location.href =
+                        "/login?next_url=/excel";
+
+                    return;
+                }
+
+                if (!downloadResponse.ok) {
+                    let message =
+                        "Δεν ήταν δυνατή η λήψη "
+                        + "του Excel.";
+
+                    try {
+                        const errorData =
+                            await downloadResponse.json();
+
+                        message =
+                            errorData.detail ||
+                            message;
+
+                    } catch {
+                        const errorText =
+                            await downloadResponse.text();
+
+                        if (errorText) {
+                            message =
+                                errorText;
+                        }
+                    }
+
+                    throw new Error(
+                        message
+                    );
+                }
+
+                const blob =
+                    await downloadResponse.blob();
+
+                const disposition =
+                    downloadResponse.headers.get(
+                        "Content-Disposition"
+                    ) || "";
+
+                let fileName =
+                    "vat_list_results.xlsx";
+
+                const fileNameMatch =
+                    disposition.match(
+                        /filename="?([^";]+)"?/i
+                    );
+
+                if (
+                    fileNameMatch &&
+                    fileNameMatch[1]
+                ) {
+                    fileName =
+                        fileNameMatch[1].trim();
+                }
+
+                const downloadUrl =
+                    URL.createObjectURL(
+                        blob
+                    );
+
+                const downloadLink =
+                    document.createElement(
+                        "a"
+                    );
+
+                downloadLink.href =
+                    downloadUrl;
+
+                downloadLink.download =
+                    fileName;
+
+                document.body.appendChild(
+                    downloadLink
+                );
+
+                downloadLink.click();
+
+                downloadLink.remove();
+
+                setTimeout(
+                    function () {
+                        URL.revokeObjectURL(
+                            downloadUrl
+                        );
+                    },
+                    1500
+                );
+
+                bulkMessage.className =
+                    "bulk-message completed";
+
+                bulkMessage.innerHTML =
+                    "✅ Ο έλεγχος ολοκληρώθηκε "
+                    + "επιτυχώς."
+                    + "<br><br>"
+                    + "✅ Επεξεργάστηκαν "
+                    + rows.length
+                    + " VAT numbers."
+                    + "<br><br>"
+                    + "📄 Κατέβηκε το αρχείο: "
+                    + fileName;
+
+                bulkButton.disabled =
+                    false;
+
+                bulkButton.textContent =
+                    "Εκτέλεση νέας λίστας VAT";
+
+            } catch (error) {
+                progressWrapper.style.display =
+                    "none";
+
+                progressWrapper.classList.remove(
+                    "completed"
+                );
+
+                progressFill.style.width =
+                    "0%";
+
+                progressPercentage.textContent =
+                    "0%";
+
+                progressDetails.textContent =
+                    "0 / "
+                    + rows.length
+                    + " ολοκληρώθηκαν";
+
+                progressTitle.textContent =
+                    "Ο έλεγχος διακόπηκε";
+
+                if (successBox) {
+                    successBox.style.display =
+                        "none";
+                }
+
+                bulkMessage.className =
+                    "bulk-message failed";
+
+                bulkMessage.innerHTML =
+                    "❌ Ο έλεγχος δεν "
+                    + "ολοκληρώθηκε."
+                    + "<br><br>"
+                    + String(
+                        error.message ||
+                        "Άγνωστο σφάλμα."
+                    );
+
+                bulkButton.disabled =
+                    false;
+
+                bulkButton.textContent =
+                    "Δοκιμή ξανά";
+
+                console.error(
+                    error
+                );
+            }
+        }
+    );
+}
+</script>
+
+</body>
+</html>

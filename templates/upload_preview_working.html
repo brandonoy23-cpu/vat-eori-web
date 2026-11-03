@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Excel Upload</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 32px 16px;
+            background: #f3f5f7;
+            color: #242424;
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1050px;
+            margin: 0 auto;
+        }
+
+        .card {
+            padding: 30px;
+            background: #ffffff;
+            border: 1px solid #dddddd;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: #0067b8;
+        }
+
+        .subtitle {
+            margin-top: 0;
+            color: #555555;
+        }
+
+        .requirements {
+            margin: 22px 0;
+            padding: 16px;
+            background: #e8f3fb;
+            border-left: 4px solid #0067b8;
+            border-radius: 5px;
+        }
+
+        .requirements code {
+            padding: 2px 5px;
+            background: #ffffff;
+            border-radius: 3px;
+        }
+
+        .upload-form {
+            margin-top: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #777777;
+            border-radius: 5px;
+            background: #ffffff;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 18px;
+            padding: 14px 20px;
+            color: #ffffff;
+            background: #0067b8;
+            border: 0;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #005a9e;
+        }
+
+        button:disabled {
+            cursor: wait;
+            background: #777777;
+        }
+
+        .message {
+            margin-top: 24px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .error {
+            color: #721c24;
+            background: #fde7e9;
+            border: 1px solid #c50f1f;
+        }
+
+        .success {
+            color: #0b5a08;
+            background: #dff6dd;
+            border: 1px solid #107c10;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-top: 24px;
+        }
+
+        .summary-item {
+            padding: 16px;
+            background: #f5f7fa;
+            border: 1px solid #dddddd;
+            border-radius: 6px;
+        }
+
+        .summary-label {
+            display: block;
+            color: #555555;
+            font-size: 14px;
+        }
+
+        .summary-value {
+            display: block;
+            margin-top: 4px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .table-wrapper {
+            margin-top: 26px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            padding: 12px;
+            color: #ffffff;
+            background: #0067b8;
+            text-align: left;
+        }
+
+        td {
+            padding: 11px 12px;
+            border-bottom: 1px solid #dddddd;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f7f9fb;
+        }
+
+        .row-error {
+            background: #fde7e9 !important;
+        }
+
+        .status-ok {
+            color: #107c10;
+            font-weight: bold;
+        }
+
+        .status-error {
+            color: #c50f1f;
+            font-weight: bold;
+        }
+
+        .navigation {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid #dddddd;
+        }
+
+        .navigation a {
+            display: inline-block;
+            margin-right: 18px;
+            margin-bottom: 8px;
+            color: #0067b8;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 700px) {
+            .summary {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+        <section class="card">
+            <h1>Excel Upload &amp; Preview</h1>
+
+            <p class="subtitle">
+                Ανέβασε αρχείο Excel με Country Code και VAT Number.
+                Σε αυτό το στάδιο γίνεται μόνο προεπισκόπηση και έλεγχος
+                των δεδομένων.
+            </p>
+
+            <div class="requirements">
+                <strong>Απαιτούμενες στήλες:</strong>
+
+                <ul>
+                    <li><code>Country Code</code></li>
+                    <li><code>VAT Number</code></li>
+                </ul>
+
+                <p>
+                    Το αρχείο πρέπει να είναι τύπου <code>.xlsx</code>
+                    και οι επικεφαλίδες πρέπει να βρίσκονται στην πρώτη
+                    γραμμή.
+                </p>
+            </div>
+
+            <form
+                id="upload-form"
+                class="upload-form"
+                action="/upload-excel"
+                method="post"
+                enctype="multipart/form-data"
+            >
+                <label for="excel_file">
+                    Επιλογή αρχείου Excel
+                </label>
+
+                <input
+                    id="excel_file"
+                    name="excel_file"
+                    type="file"
+                    accept=".xlsx"
+                    required
+                >
+
+                <button id="upload-button" type="submit">
+                    Upload και προεπισκόπηση
+                </button>
+            </form>
+
+            {% if error %}
+                <div class="message error">
+                    <strong>Σφάλμα:</strong> {{ error }}
+                </div>
+            {% endif %}
+
+            {% if success_message %}
+                <div class="message success">
+                    {{ success_message }}
+                </div>
+            {% endif %}
+
+            {% if preview_rows %}
+                <div class="summary">
+                    <div class="summary-item">
+                        <span class="summary-label">
+                            Αρχείο
+                        </span>
+
+                        <span class="summary-value">
+                            {{ filename }}
+                        </span>
+                    </div>
+
+                    <div class="summary-item">
+                        <span class="summary-label">
+                            Σύνολο εγγραφών
+                        </span>
+
+                        <span class="summary-value">
+                            {{ total_rows }}
+                        </span>
+                    </div>
+
+                    <div class="summary-item">
+                        <span class="summary-label">
+                            Προεπισκόπηση
+                        </span>
+
+                        <span class="summary-value">
+                            {{ preview_rows|length }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Γραμμή</th>
+                                <th>Country Code</th>
+                                <th>VAT Number</th>
+                                <th>Full VAT</th>
+                                <th>EORI Country</th>
+                                <th>Full EORI</th>
+                                <th>Έλεγχος εισόδου</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for row in preview_rows %}
+                                <tr
+                                    {% if row.input_status != "OK" %}
+                                        class="row-error"
+                                    {% endif %}
+                                >
+                                    <td>{{ row.excel_row }}</td>
+                                    <td>{{ row.country_code or "-" }}</td>
+                                    <td>{{ row.vat_number or "-" }}</td>
+                                    <td>{{ row.full_vat or "-" }}</td>
+                                    <td>{{ row.eori_country_code or "-" }}</td>
+                                    <td>{{ row.full_eori or "-" }}</td>
+                                    <td>
+                                        {% if row.input_status == "OK" %}
+                                            <span class="status-ok">
+                                                OK
+                                            </span>
+                                        {% else %}
+                                            <span class="status-error">
+                                                {{ row.input_status }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+
+            <nav class="navigation">
+                <a href="/">Μεμονωμένος έλεγχος</a>
+                <a href="/excel">Νέο Excel upload</a>
+                <a href="/docs">API documentation</a>
+                <a href="/health">Health check</a>
+            </nav>
+        </section>
+    </main>
+
+    <script>
+        const uploadForm = document.getElementById("upload-form");
+        const uploadButton = document.getElementById("upload-button");
+
+        uploadForm.addEventListener("submit", function () {
+            uploadButton.disabled = true;
+            uploadButton.textContent = "Το αρχείο ελέγχεται...";
+        });
+    </script>
+</body>
+</html>

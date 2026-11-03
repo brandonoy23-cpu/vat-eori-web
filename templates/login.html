@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>VAT & EORI Verification</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#f3f5f7;
+    font-family:Arial,sans-serif;
+}
+
+.card{
+    width:100%;
+    max-width:500px;
+    background:white;
+    padding:40px;
+    border-radius:14px;
+    box-shadow:0 8px 25px rgba(0,0,0,.10);
+}
+
+.logo{
+    display:block;
+    max-width:160px;
+    margin:0 auto 20px auto;
+}
+
+h1{
+    margin:0;
+    text-align:center;
+    color:#0067b8;
+}
+
+.description{
+    margin-top:10px;
+    text-align:center;
+    color:#666;
+}
+
+label{
+    display:block;
+    margin-top:15px;
+    margin-bottom:6px;
+    font-weight:bold;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    border:1px solid #bbb;
+    border-radius:5px;
+}
+
+button{
+    width:100%;
+    margin-top:20px;
+    padding:14px;
+    border:none;
+    border-radius:5px;
+    background:#0067b8;
+    color:white;
+    font-weight:bold;
+    font-size:16px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#005a9e;
+}
+
+.error{
+    margin-bottom:15px;
+    padding:10px;
+    background:#fde7e9;
+    color:#c50f1f;
+    border-radius:5px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<img
+    src="/static/images/logo.png"
+    class="logo"
+    alt="OpsCore Logo"
+>
+
+<h1>VAT & EORI Verification</h1>
+
+<p class="description">
+Συνδέσου για να χρησιμοποιήσεις την εφαρμογή
+</p>
+
+{% if error %}
+<div class="error">{{ error }}</div>
+{% endif %}
+
+<form action="/login" method="post">
+
+<input
+    type="hidden"
+    name="next_url"
+    value="{{ next_url }}"
+>
+
+<label>Username</label>
+
+<input
+    type="text"
+    name="username"
+    required
+>
+
+<label>Password</label>
+
+<input
+    type="password"
+    name="password"
+    required
+>
+
+<button type="submit">
+Σύνδεση
+</button>
+
+</form>
+
+</div>
+
+</body>
+</html>

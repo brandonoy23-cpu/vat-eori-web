@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Σύνδεση</title>
+<style>
+*{box-sizing:border-box}body{min-height:100vh;margin:0;padding:24px;display:flex;align-items:center;justify-content:center;background:#f3f5f7;color:#242424;font-family:Arial,sans-serif}.card{width:100%;max-width:430px;padding:32px;background:#fff;border:1px solid #ddd;border-radius:12px;box-shadow:0 5px 22px rgba(0,0,0,.10)}h1{margin:0 0 8px;color:#0067b8}.description{margin:0 0 24px;color:#555}.field{margin-bottom:18px}label{display:block;margin-bottom:7px;font-weight:bold}input{width:100%;padding:13px;border:1px solid #777;border-radius:5px;font-size:16px}button{width:100%;padding:14px;color:#fff;background:#0067b8;border:0;border-radius:5px;font-size:16px;font-weight:bold;cursor:pointer}.error{margin-bottom:20px;padding:13px;color:#721c24;background:#fde7e9;border:1px solid #c50f1f;border-radius:5px}.note{margin-top:22px;color:#666;font-size:13px}
+</style>
+</head>
+<body><main class="card"><h1>VAT &amp; EORI Verification</h1><p class="description">Συνδέσου για να χρησιμοποιήσεις την εφαρμογή.</p>
+{% if error %}<div class="error" role="alert">{{ error }}</div>{% endif %}
+<form action="/login" method="post">
+<input type="hidden" name="next_url" value="{{ next_url }}">
+<div class="field"><label for="username">Username</label><input id="username" name="username" type="text" autocomplete="username" required autofocus></div>
+<div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required></div>
+<button type="submit">Σύνδεση</button>
+</form><p class="note">Η συνεδρία λήγει μετά από 8 ώρες.</p></main></body></html>

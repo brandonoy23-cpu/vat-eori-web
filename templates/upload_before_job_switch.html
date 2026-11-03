@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Bulk VAT & EORI Verification</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    padding:30px;
+
+    background:#cfd7e0;
+
+    font-family:Arial,sans-serif;
+    color:#242424;
+}
+
+.container{
+    width:90%;
+    max-width:1400px;
+    margin:auto;
+}
+
+.card{
+    background:white;
+
+    border-radius:18px;
+
+    padding:35px;
+
+    border:1px solid
+        rgba(0,0,0,.05);
+
+    box-shadow:
+        0 14px 35px
+        rgba(0,0,0,.12);
+}
+
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:30px;
+
+    padding-bottom:20px;
+    margin-bottom:30px;
+
+    border-bottom:
+        2px solid #d9e3ee;
+}
+
+.branding{
+    display:flex;
+    gap:20px;
+    align-items:center;
+}
+
+.branding img{
+    width:135px;
+    height:auto;
+
+    object-fit:contain;
+
+    filter:
+        drop-shadow(
+            0 4px 8px
+            rgba(0,0,0,.15)
+        );
+}
+
+.branding h1{
+    margin:0;
+    color:#0067b8;
+}
+
+.branding p{
+    margin:6px 0 0;
+    color:#666;
+}
+
+.actions{
+    display:flex;
+    gap:10px;
+}
+
+.actions a{
+    text-decoration:none;
+    color:white;
+    padding:10px 16px;
+    border-radius:6px;
+    font-weight:bold;
+}
+
+.change-user{
+    background:#6f42c1;
+}
+
+.logout{
+    background:#d13438;
+}
+
+.info{
+    margin-bottom:18px;
+    padding:10px 14px;
+    border-left:4px solid #0067b8;
+    background:#eef6fc;
+    border-radius:6px;
+}
+.paste-card{
+
+    margin-top:25px;
+
+    padding:20px;
+
+    background:white;
+
+    border:1px solid
+        rgba(0,0,0,.08);
+
+    border-radius:10px;
+}
+
+.paste-card h3{
+
+    margin-top:0;
+
+    color:#0067b8;
+}
+
+.paste-card select{
+
+    width:100%;
+
+    padding:12px;
+
+    border:1px solid #ccc;
+
+    border-radius:6px;
+}
+
+.paste-card textarea{
+
+    width:100%;
+
+    margin-top:10px;
+
+    padding:12px;
+
+    border:1px solid #ccc;
+
+    border-radius:6px;
+
+    font-family:Consolas, monospace;
+
+    resize:vertical;
+}
+.vat-counter{
+
+    margin-top:8px;
+
+    text-align:right;
+
+    color:#666;
+
+    font-size:13px;
+
+    font-weight:bold;
+}
+
+label{
+    display:block;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+
+input[type=file]{
+    width:100%;
+    padding:15px;
+    border:1px solid #cccccc;
+    border-radius:6px;
+    font-size:15px;
+}
+
+.run-button{
+    width:100%;
+    margin-top:20px;
+    border:none;
+    border-radius:6px;
+    background:#0067b8;
+    color:white;
+    padding:15px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.run-button:hover{
+    background:#005a9e;
+}
+
+.run-button:disabled{
+    background:#888;
+    cursor:wait;
+}
+.progress-wrapper{
+    display:none;
+    margin-top:20px;
+}
+
+.progress-bar{
+    width:100%;
+    height:24px;
+    background:#dfe3e8;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.progress-fill{
+    width:0%;
+    height:100%;
+    background:#0067b8;
+    transition:width .3s ease;
+}
+.new-search-btn{
+
+    margin-top:10px;
+
+    background:#0067b8;
+
+    color:white;
+
+    border:none;
+
+    border-radius:6px;
+
+    padding:10px 16px;
+
+    cursor:pointer;
+
+    font-weight:bold;
+}
+
+.new-search-btn:hover{
+
+    background:#005a9e;
+}
+.success-box{
+    display:none;
+    margin-top:20px;
+    padding:15px;
+    background:#dff6dd;
+    border:1px solid #107c10;
+    border-radius:6px;
+    color:#0f5d0f;
+    font-weight:bold;
+}
+.status{
+    display:none;
+    margin-top:25px;
+    padding:15px;
+    border-radius:6px;
+}
+
+.processing{
+    display:block;
+    background:#eef6fc;
+    border:1px solid #0067b8;
+}
+
+.success{
+    display:block;
+    background:#dff6dd;
+    border:1px solid #107c10;
+    color:#0b5a08;
+}
+
+.failure{
+    display:block;
+    background:#fde7e9;
+    border:1px solid #c50f1f;
+    color:#721c24;
+}
+
+.spinner{
+    width:18px;
+    height:18px;
+    display:inline-block;
+    margin-right:10px;
+    border:3px solid #c2dff4;
+    border-top-color:#0067b8;
+    border-radius:50%;
+    animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+    to{
+        transform:rotate(360deg);
+    }
+}
+.summary-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+    margin-top:25px;
+}
+
+.kpi-card{
+    background:white;
+    border-radius:12px;
+    border:1px solid rgba(0,0,0,.08);
+    box-shadow:
+        0 4px 12px rgba(0,0,0,.05);
+
+    padding:18px;
+
+    text-align:center;
+}
+
+.kpi-title{
+    font-size:13px;
+    color:#666;
+    margin-bottom:10px;
+}
+
+.kpi-value{
+    font-size:30px;
+    font-weight:bold;
+}
+
+.kpi-blue{
+    color:#0067b8;
+}
+
+.kpi-green{
+    color:#107c10;
+}
+
+.kpi-orange{
+    color:#ca5010;
+}
+
+.kpi-red{
+    color:#c50f1f;
+}
+.warning{
+    margin-top:20px;
+    padding:14px;
+    background:#fff4ce;
+    border:1px solid #ca5010;
+    border-radius:6px;
+}
+
+.nav{
+    margin-top:25px;
+    border-top:1px solid #ddd;
+    padding-top:20px;
+}
+
+.nav a{
+    margin-right:20px;
+    color:#0067b8;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+.nav a:hover{
+    text-decoration:underline;
+}
+
+@media(max-width:800px){
+
+    .header{
+        flex-direction:column;
+    }
+
+    .branding{
+        flex-direction:column;
+        text-align:center;
+    }
+
+    .actions{
+        width:100%;
+    }
+
+    .actions a{
+        flex:1;
+        text-align:center;
+    }
+}
+.language-switch{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    align-items:center;
+
+    gap:10px;
+
+    margin-bottom:10px;
+
+    font-size:14px;
+}
+
+.language-switch a{
+
+    color:#0067b8;
+
+    font-weight:bold;
+
+    text-decoration:none;
+}
+
+.language-switch a:hover{
+
+    text-decoration:underline;
+}
+
+.language-switch span{
+
+    color:#999;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+
+
+<header class="header">
+
+    <div class="branding">
+
+        <img
+            src="/static/images/logo.png"
+            alt="OpsCore Solutions"
+        >
+
+        <div>
+
+            <h1>
+                Bulk VAT & EORI Verification
+            </h1>
+
+            <p>
+                Μαζικός έλεγχος VAT και EORI μέσω Excel
+            </p>
+
+        </div>
+
+    </div>
+
+    <div>
+
+        <div class="language-switch">
+
+            <a href="/set-language/el">
+                Ελληνικά
+            </a>
+
+            <span>|</span>
+
+            <a href="/set-language/en">
+                English
+            </a>
+
+        </div>
+
+        <div class="actions">
+
+            <a
+                href="/change-user"
+                class="change-user"
+            >
+                Αλλαγή χρήστη
+            </a>
+
+            <a
+                href="/logout"
+                class="logout"
+            >
+                Αποσύνδεση
+            </a>
+
+        </div>
+
+    </div>
+
+</header>
+<div class="info">
+
+<strong>Απαιτούμενες στήλες:</strong>
+
+<ul>
+<li>Country Code</li>
+<li>VAT Number</li>
+</ul>
+
+</div>
+
+<div class="paste-card">
+
+    <h3>
+        Άμεσος έλεγχος VAT χωρίς Excel
+    </h3>
+
+    <label for="country_code_bulk">
+        Χώρα
+    </label>
+
+    <select
+        id="country_code_bulk"
+        name="country_code_bulk"
+    >
+
+        <option value="EL">
+            Ελλάδα (EL)
+        </option>
+
+        <option value="DE">
+            Germany (DE)
+        </option>
+
+        <option value="FR">
+            France (FR)
+        </option>
+
+        <option value="IT">
+            Italy (IT)
+        </option>
+
+        <option value="NL">
+            Netherlands (NL)
+        </option>
+
+        <option value="BE">
+            Belgium (BE)
+        </option>
+
+        <option value="ES">
+            Spain (ES)
+        </option>
+
+    </select>
+
+    <label
+        for="bulk_vat_list"
+        style="margin-top:15px;"
+    >
+        VAT Numbers
+    </label>
+
+    <textarea
+        id="bulk_vat_list"
+        rows="10"
+        placeholder="999280128
+045284097
+136459381"
+    ></textarea>
+<div
+    id="vat-counter"
+    class="vat-counter"
+>
+    0 / 100 VATs
+</div>
+
+
+    <button
+        type="button"
+        id="bulk-run-button"
+        class="run-button"
+    >
+        Εκτέλεση λίστας VAT
+    </button>
+
+</div>
+
+<form
+    id="bulk-form"
+    action="/process-excel"
+    method="post"
+    enctype="multipart/form-data"
+>
+
+<label for="excel_file">
+
+Αρχείο Excel (.xlsx)
+
+</label>
+
+<input
+    id="excel_file"
+    name="excel_file"
+    type="file"
+    accept=".xlsx"
+    required
+>
+
+<button
+    class="run-button"
+    id="run-button"
+    type="submit"
+>
+
+Έναρξη μαζικού ελέγχου
+
+</button>
+
+</form>
+
+<div
+    id="progress-wrapper"
+    class="progress-wrapper"
+>
+
+    <div class="progress-bar">
+
+        <div
+            id="progress-fill"
+            class="progress-fill"
+        ></div>
+
+    </div>
+
+</div>
+
+<div
+    id="success-box"
+    class="success-box"
+>
+
+    ✅ Ο έλεγχος ολοκληρώθηκε επιτυχώς.
+
+    <br><br>
+
+    ✅ Το αρχείο αποτελεσμάτων
+    κατέβηκε στον υπολογιστή σας.
+
+    <br><br>
+
+<button
+    type="button"
+    id="bulk-run-button"
+    class="run-button"
+>
+    Εκτέλεση λίστας VAT
+</button>
+
+<div
+    id="bulk-message"
+    style="
+        display:none;
+        margin-top:15px;
+        padding:12px;
+        background:#e8f3fb;
+        border-left:4px solid #0067b8;
+        border-radius:6px;
+    "
+></div>
+
+
+</div>
+<div class="warning">
+
+Μην κλείσεις ή ανανεώσεις τη σελίδα
+όσο εκτελείται ο έλεγχος.
+
+</div>
+
+<div class="nav">
+
+<a href="/">
+Μεμονωμένος έλεγχος
+</a>
+
+<a href="/docs">
+API Documentation
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const form =
+document.getElementById("bulk-form");
+
+const button =
+document.getElementById("run-button");
+
+const fileInput =
+document.getElementById("excel_file");
+
+const vatCounter =
+document.getElementById(
+    "vat-counter"
+);
+
+const progressWrapper =
+document.getElementById(
+    "progress-wrapper"
+);
+
+const progressFill =
+document.getElementById(
+    "progress-fill"
+);
+
+const successBox =
+document.getElementById(
+    "success-box"
+);
+
+const bulkButton =
+document.getElementById(
+    "bulk-run-button"
+);
+
+const bulkVatList =
+document.getElementById(
+    "bulk_vat_list"
+);
+
+const countrySelect =
+document.getElementById(
+    "country_code_bulk"
+);
+
+const bulkMessage =
+document.getElementById(
+    "bulk-message"
+);
+
+/* Counter */
+
+if (
+    bulkVatList &&
+    vatCounter
+) {
+
+    bulkVatList.addEventListener(
+        "input",
+        function () {
+
+            const rows =
+                bulkVatList.value
+                    .split("\n")
+                    .filter(
+                        row =>
+                            row.trim() !== ""
+                    );
+
+            vatCounter.textContent =
+                rows.length +
+                " / 100 VATs";
+
+            if (
+                rows.length > 100
+            ) {
+
+                vatCounter.style.color =
+                    "#c50f1f";
+
+            }
+            else {
+
+                vatCounter.style.color =
+                    "#666";
+
+            }
+
+        }
+    );
+
+}
+
+/* Bulk list button */
+
+if (
+    bulkButton &&
+    bulkVatList &&
+    bulkMessage &&
+    countrySelect
+) {
+bulkButton.addEventListener(
+    "click",
+    async function(){
+
+        const rows =
+            bulkVatList.value
+                .split("\n")
+                .map(
+                    item =>
+                    item.trim()
+                )
+                .filter(
+                    item =>
+                    item !== ""
+                );
+
+        if(
+            rows.length === 0
+        ){
+
+            alert(
+                "Δεν υπάρχουν VAT."
+            );
+
+            return;
+        }
+
+        if(
+            rows.length > 100
+        ){
+
+            alert(
+                "Μέγιστο 100 VAT."
+            );
+
+            return;
+        }
+
+        bulkMessage.style.display =
+            "block";
+
+        bulkMessage.innerHTML =
+            "⏳ Αποστολή "
+            +
+            rows.length
+            +
+            " VAT στο backend...";
+
+        try{
+
+            const response =
+                await fetch(
+                    "/process-vat-list",
+                    {
+                        method:"POST",
+
+                        headers:{
+                            "Content-Type":
+                            "application/json"
+                        },
+
+                        body:JSON.stringify(
+                            {
+                                country:
+                                    countrySelect.value,
+
+                                vats:
+                                    rows
+                            }
+                        )
+                    }
+                );
+	    const blob =
+    		await response.blob();
+
+
+const url =
+    URL.createObjectURL(
+        blob
+    );
+
+const link =
+    document.createElement(
+        "a"
+    );
+
+link.href = url;
+
+link.download =
+    "vat_list_results.xlsx";
+
+document.body.appendChild(
+    link
+);
+
+link.click();
+
+link.remove();
+setTimeout(
+    () => {
+
+        URL.revokeObjectURL(
+            url
+        );
+
+    },
+    1500
+);
+bulkMessage.style.display =
+    "block";
+
+bulkMessage.innerHTML =
+    "✅ Ο έλεγχος ολοκληρώθηκε επιτυχώς.<br><br>"
+    +
+    "✅ Το αρχείο αποτελεσμάτων κατέβηκε "
+    +
+    "στον υπολογιστή σας.";
+
+
+        }
+        catch(error){
+
+            bulkMessage.innerHTML =
+                "❌ Σφάλμα επικοινωνίας.";
+
+            console.error(error);
+
+        }
+
+    }
+);
+   
+
+}
+
+</script>
+
+</body>
+</html>
