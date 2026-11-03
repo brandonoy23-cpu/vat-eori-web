@@ -146,6 +146,26 @@ def initialize_database():
             """
         )
 
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users
+            (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+                username TEXT UNIQUE NOT NULL,
+
+                password_hash TEXT NOT NULL,
+
+                role TEXT NOT NULL,
+
+                expires_at TEXT,
+
+                is_active INTEGER NOT NULL DEFAULT 1,
+
+                created_at TEXT NOT NULL
+            )
+            """
+        )
         connection.commit()
 
     finally:
@@ -497,7 +517,9 @@ def ensure_default_admin():
 
         connection.close()
 
+initialize_database()
 
+ensure_default_admin()
 
 def ensure_default_admin():
     connection = sqlite3.connect(
