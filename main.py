@@ -7,7 +7,7 @@ import sqlite3
 
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
-from datetime import datetime
+from datetime import datetime, date
 from io import BytesIO
 from typing import Literal
 from urllib.parse import quote, urlparse
@@ -121,6 +121,26 @@ def initialize_database():
                 company_address TEXT,
                 request_date TEXT,
                 checked_at TEXT
+            )
+            """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users
+            (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+                username TEXT NOT NULL UNIQUE,
+
+                password_hash TEXT NOT NULL,
+
+                role TEXT NOT NULL,
+
+                expires_at TEXT,
+
+                is_active INTEGER NOT NULL DEFAULT 1,
+
+                created_at TEXT NOT NULL
             )
             """
         )
@@ -308,6 +328,110 @@ def get_job_status(
         }
 
     finally:
+        connection.close()
+
+
+
+
+def user_access_expired(
+    user: dict,
+) -> bool:
+
+    expires_at = user.get(
+        "expires_at"
+    )
+
+    if not expires_at:
+        return False
+
+    return (
+        date.today()
+        >
+        date.fromisoformat(
+            expires_at
+        )
+    )
+
+def validate_user(
+    username: str,
+):
+
+    user = get_user_by_username(
+        username
+    )
+
+    if user is None:
+        return None
+
+    if (
+        user["is_active"]
+        != 1
+    ):
+        return None
+
+    if user_access_expired(
+        user
+    ):
+        return None
+
+    return user
+
+def authenticate_sqlite_user(
+    username: str,
+    password: str,
+):
+    user = validate_user(
+        username
+    )
+
+    if user is None:
+        return None
+
+    if not verify_password(
+        password,
+        user["password_hash"]
+    ):
+        return None
+
+    return user
+
+def get_user_by_username(
+    username: str,
+):
+    connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    connection.row_factory = (
+        sqlite3.Row
+    )
+
+    try:
+
+        row = connection.execute(
+            """
+            SELECT
+                id,
+                username,
+                password_hash,
+                role,
+                expires_at,
+                is_active
+            FROM users
+            WHERE username = ?
+            """,
+            (
+                username,
+            ),
+        ).fetchone()
+
+        if row is None:
+            return None
+
+        return dict(row)
+
+    finally:
+
         connection.close()
 
 initialize_database()
@@ -956,6 +1080,23 @@ def redirect_login(request: Request):
 
 def require_login(request: Request):
     if not is_authenticated(request): raise HTTPException(status_code=401,detail="Authentication required")
+def require_admin(
+    request: Request,
+):
+    require_login(
+        request
+    )
+
+    if (
+        request.session.get(
+            "role"
+        )
+        != "ADMIN"
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Admin only"
+        )
 def get_texts(
     request: Request,
 ):
@@ -974,11 +1115,90 @@ async def login_page(request: Request,next_url: str="/excel"):
     return templates.TemplateResponse(request=request,name="login.html",context={"error":None,"next_url":next_url if next_url.startswith("/") and not next_url.startswith("//") else "/excel"})
 
 @app.post("/login")
-async def login_submit(request: Request,username: str=Form(...),password: str=Form(...),next_url: str=Form("/excel")):
-    if not (secrets.compare_digest(username.strip(),APP_USERNAME) and verify_password(password,APP_PASSWORD_HASH)):
-        return templates.TemplateResponse(request=request,name="login.html",context={"error":"Λανθασμένο username ή password.","next_url":"/excel"},status_code=401)
-    request.session.clear(); request.session["authenticated"]=True; request.session["username"]=APP_USERNAME
-    return RedirectResponse("/excel",status_code=303)
+async def login_submit(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    next_url: str = Form("/excel"),
+):
+    user = get_user_by_username(
+        username.strip()
+    )
+
+    if user is None:
+        return templates.TemplateResponse(
+            request=request,
+            name="login.html",
+            context={
+                "error":
+                "Λανθασμένο username ή password.",
+                "next_url":
+                next_url,
+            },
+            status_code=401,
+        )
+
+    if not user["is_active"]:
+        return templates.TemplateResponse(
+            request=request,
+            name="login.html",
+            context={
+                "error":
+                "Ο λογαριασμός είναι απενεργοποιημένος.",
+                "next_url":
+                next_url,
+            },
+            status_code=401,
+        )
+    if user_access_expired(
+        user
+    ):
+        return templates.TemplateResponse(
+            request=request,
+            name="login.html",
+            context={
+                "error":
+                "Η πρόσβασή σας έχει λήξει.",
+                "next_url":
+                next_url,
+            },
+            status_code=401,
+        )
+
+    if not verify_password(
+        password,
+        user["password_hash"],
+    ):
+        return templates.TemplateResponse(
+            request=request,
+            name="login.html",
+            context={
+                "error":
+                "Λανθασμένο username ή password.",
+                "next_url":
+                next_url,
+            },
+            status_code=401,
+        )
+
+    request.session.clear()
+
+    request.session[
+        "authenticated"
+    ] = True
+
+    request.session[
+        "username"
+    ] = user["username"]
+
+    request.session[
+        "role"
+    ] = user["role"]
+
+    return RedirectResponse(
+        next_url,
+        status_code=303,
+    )
 
 @app.get("/logout")
 async def logout(request: Request):
@@ -1600,7 +1820,47 @@ async def download_job(
                 f'filename="{safe_filename}"'
             )
         },
-    )   
+    ) 
+@app.get("/admin/users")
+async def admin_users(
+    request: Request,
+):
+    require_admin(
+        request
+    )
+
+    connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    connection.row_factory = (
+        sqlite3.Row
+    )
+
+    try:
+
+        users = connection.execute(
+            """
+            SELECT
+                id,
+                username,
+                role,
+                expires_at,
+                is_active
+            FROM users
+            ORDER BY username
+            """
+        ).fetchall()
+
+        return [
+            dict(user)
+            for user in users
+        ]
+
+    finally:
+
+        connection.close()
+ 
 @app.get("/health")
 async def health(request: Request):
     require_login(request)
