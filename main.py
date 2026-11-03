@@ -88,6 +88,7 @@ RESULTS_DIRECTORY.mkdir(
 )
 
 def initialize_database():
+
     connection = sqlite3.connect(
         DATABASE_FILE
     )
@@ -434,7 +435,132 @@ def get_user_by_username(
 
         connection.close()
 
-initialize_database()
+
+def ensure_default_admin():
+    connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    connection.row_factory = sqlite3.Row
+
+    try:
+
+        row = connection.execute(
+            """
+            SELECT id
+            FROM users
+            LIMIT 1
+            """
+        ).fetchone()
+
+        if row is not None:
+            return
+
+        connection.execute(
+            """
+            INSERT INTO users
+            (
+                username,
+                password_hash,
+                role,
+                expires_at,
+                is_active,
+                created_at
+            )
+            VALUES
+            (
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?
+            )
+            """,
+            (
+                APP_USERNAME,
+                APP_PASSWORD_HASH,
+                "ADMIN",
+                None,
+                1,
+                datetime.now().isoformat(),
+            )
+        )
+
+        connection.commit()
+
+        print(
+            "Default admin created"
+        )
+
+    finally:
+
+        connection.close()
+
+
+
+def ensure_default_admin():
+    connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    connection.row_factory = sqlite3.Row
+
+    try:
+
+        row = connection.execute(
+            """
+            SELECT id
+            FROM users
+            LIMIT 1
+            """
+        ).fetchone()
+
+        if row is not None:
+            return
+
+        connection.execute(
+            """
+            INSERT INTO users
+            (
+                username,
+                password_hash,
+                role,
+                expires_at,
+                is_active,
+                created_at
+            )
+            VALUES
+            (
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?
+            )
+            """,
+            (
+                APP_USERNAME,
+                APP_PASSWORD_HASH,
+                "ADMIN",
+                None,
+                1,
+                datetime.now().isoformat(),
+            )
+        )
+
+        connection.commit()
+
+        print(
+            "Default admin created"
+        )
+
+    finally:
+
+        connection.close()
+
+
 async def run_vat_list_job(
     job_id: int,
     country: str,
