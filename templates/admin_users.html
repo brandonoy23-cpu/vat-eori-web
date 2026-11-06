@@ -6,9 +6,26 @@
 </head>
 <body>
 
-    <h1>
-        Διαχείριση Χρηστών
-    </h1>
+<h1>
+    Διαχείριση Χρηστών
+</h1>
+
+{% if error == "username_exists" %}
+
+<p style="color:red;">
+    Το username υπάρχει ήδη.
+</p>
+
+{% endif %}
+
+{% if success == "user_created" %}
+
+<p style="color:green;">
+    ✅ Ο χρήστης δημιουργήθηκε επιτυχώς.
+</p>
+
+{% endif %}
+
 <hr>
 
 <h2>
@@ -32,10 +49,18 @@
     </p>
 
     <input
-        type="password"
-        name="password"
-        required
-    >
+    type="text"
+    id="new-user-password"
+    name="password"
+    required
+>
+
+<button
+    type="button"
+    onclick="generatePassword()"
+>
+    Generate Password
+</button>
 
     <p>
         Role
@@ -76,24 +101,163 @@
     <table border="1">
 
         <tr>
-            <th>Username</th>
-            <th>Role</th>
-            <th>Expiration</th>
-            <th>Active</th>
-        </tr>
+    <th>Username</th>
+    <th>Role</th>
+    <th>Expiration</th>
+    <th>Active</th>
+    <th>Actions</th>
+    <th>Password</th>
+</tr>
 
         {% for user in users %}
 
-        <tr>
-            <td>{{ user.username }}</td>
-            <td>{{ user.role }}</td>
-            <td>{{ user.expires_at }}</td>
-            <td>{{ user.is_active }}</td>
-        </tr>
+<tr>
+
+    <td>
+        {{ user.username }}
+    </td>
+
+    <td>
+        {{ user.role }}
+    </td>
+
+    <td>
+
+        <form
+            method="post"
+            action="/admin/update-expiration/{{ user.id }}"
+        >
+
+            <input
+                type="date"
+                name="expires_at"
+                value="{{ user.expires_at }}"
+            >
+
+            <button
+                type="submit"
+            >
+                Save
+            </button>
+
+        </form>
+
+    </td>
+
+    <td>
+        {{ user.is_active }}
+    </td>
+
+    <td>
+
+        {% if user.username == "admin" %}
+
+            Admin Protected
+
+        {% else %}
+
+            {% if user.is_active == 1 %}
+
+            <form
+                method="post"
+                action="/admin/disable-user/{{ user.id }}"
+            >
+
+                <button
+                    type="submit"
+                >
+                    Disable
+                </button>
+
+            </form>
+<form
+    method="post"
+    action="/admin/delete-user/{{ user.id }}"
+    onsubmit="return confirm('Διαγραφή χρήστη;');"
+>
+
+    <button
+        type="submit"
+    >
+        Delete
+    </button>
+
+</form>
+
+            {% else %}
+
+            <form
+                method="post"
+                action="/admin/enable-user/{{ user.id }}"
+            >
+
+                <button
+                    type="submit"
+                >
+                    Enable
+                </button>
+
+            </form>
+
+            {% endif %}
+
+        {% endif %}
+
+    </td>
+
+    <td>
+
+        <form
+            method="post"
+            action="/admin/reset-password/{{ user.id }}"
+        >
+
+            <input
+                type="password"
+                name="new_password"
+                placeholder="New password"
+                required
+            >
+
+            <button
+                type="submit"
+            >
+                Reset
+            </button>
+
+        </form>
+
+    </td>
+
+</tr>
+
 
         {% endfor %}
 
     </table>
+<script>
 
+function generatePassword()
+{
+    const chars =
+        "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
+
+    let password = "";
+
+    for (let i = 0; i < 14; i++)
+    {
+        password += chars.charAt(
+            Math.floor(
+                Math.random() * chars.length
+            )
+        );
+    }
+
+    document.getElementById(
+        "new-user-password"
+    ).value = password;
+}
+
+</script>
 </body>
 </html>

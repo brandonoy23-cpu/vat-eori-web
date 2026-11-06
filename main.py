@@ -2109,8 +2109,14 @@ async def admin_users(
             request=request,
             name="admin_users.html",
             context={
-                "users": users,
-            },
+    "users": users,
+    "error": request.query_params.get(
+        "error"
+    ),
+    "success": request.query_params.get(
+        "success"
+    ),
+},
         )
 
     finally:
@@ -2133,6 +2139,24 @@ async def admin_create_user(
     )
 
     try:
+
+        existing_user = connection.execute(
+            """
+            SELECT id
+            FROM users
+            WHERE username = ?
+            """,
+            (
+                username.strip(),
+            ),
+        ).fetchone()
+
+        if existing_user:
+
+            return RedirectResponse(
+                "/admin/users?error=username_exists",
+                status_code=303,
+            )
 
         connection.execute(
             """
@@ -2165,6 +2189,232 @@ async def admin_create_user(
                 1,
                 datetime.now()
                 .isoformat(),
+            ),
+        )
+
+        connection.commit()
+
+    finally:
+
+        connection.close()
+
+    return RedirectResponse(
+    "/admin/users?success=user_created",
+    status_code=303,
+)
+
+@app.post(
+    "/admin/disable-user/{user_id}"
+)
+async def disable_user(
+    request: Request,
+    user_id: int,
+):
+    require_admin(
+        request
+    )
+
+    connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    try:
+
+        connection.execute(
+            """
+            UPDATE users
+            SET is_active = 0
+            WHERE id = ?
+            """,
+            (
+                user_id,
+            ),
+        )
+
+        connection.commit()
+
+    finally:
+
+        connection.close()
+
+    return RedirectResponse(
+        "/admin/users",
+        status_code=303,
+    )
+@app.post(
+    "/admin/enable-user/{user_id}"
+)
+async def enable_user(
+    request: Request,
+    user_id: int,
+):
+    require_admin(
+        request
+    )
+
+    connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    try:
+
+        connection.execute(
+            """
+            UPDATE users
+            SET is_active = 1
+            WHERE id = ?
+            """,
+            (
+                user_id,
+            ),
+        )
+
+        connection.commit()
+
+    finally:
+
+        connection.close()
+
+    return RedirectResponse(
+        "/admin/users",
+        status_code=303,
+    )
+@app.post(
+    "/admin/update-expiration/{user_id}"
+)
+async def update_expiration(
+    request: Request,
+    user_id: int,
+    expires_at: str = Form(...),
+):
+    require_admin(
+        request
+    )
+
+    connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    try:
+
+        connection.execute(
+            """
+            UPDATE users
+            SET expires_at = ?
+            WHERE id = ?
+            """,
+            (
+                expires_at,
+                user_id,
+            ),
+        )
+
+        connection.commit()
+
+    finally:
+
+        connection.close()
+
+    return RedirectResponse(
+        "/admin/users",
+        status_code=303,
+    )
+@app.post(
+    "/admin/reset-password/{user_id}"
+)
+async def reset_password(
+    request: Request,
+    user_id: int,
+    new_password: str = Form(...),
+):
+    require_admin(
+        request
+    )
+
+    if len(
+        new_password
+    ) < 10:
+        return RedirectResponse(
+            "/admin/users",
+            status_code=303,
+        )
+
+    connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    try:
+
+        connection.execute(
+            """
+            UPDATE users
+            SET password_hash = ?
+            WHERE id = ?
+            """,
+            (
+                make_hash(
+                    new_password
+                ),
+                user_id,
+            ),
+        )
+
+        connection.commit()
+
+    finally:
+
+        connection.close()
+
+    return RedirectResponse(
+        "/admin/users",
+        status_code=303,
+    )
+@app.post(
+    "/admin/delete-user/{user_id}"
+)
+async def delete_user(
+    request: Request,
+    user_id: int,
+):
+    require_admin(
+        request
+    )
+
+    connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    connection.row_factory = sqlite3.Row
+
+    try:
+
+        row = connection.execute(
+            """
+            SELECT username
+            FROM users
+            WHERE id = ?
+            """,
+            (
+                user_id,
+            ),
+        ).fetchone()
+
+        if (
+            row
+            and row["username"] == "admin"
+        ):
+            return RedirectResponse(
+                "/admin/users",
+                status_code=303,
+            )
+
+        connection.execute(
+            """
+            DELETE FROM users
+            WHERE id = ?
+            """,
+            (
+                user_id,
             ),
         )
 
