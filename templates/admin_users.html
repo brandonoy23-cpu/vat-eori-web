@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="utf-8">
+    <title>Διαχείριση Χρηστών</title>
+</head>
+<body>
+
+    <h1>
+        Διαχείριση Χρηστών
+    </h1>
+<hr>
+
+<h2>
+Νέος Χρήστης
+</h2>
+
+<form method="post" action="/admin/create-user">
+
+    <p>
+        Username
+    </p>
+
+    <input
+        type="text"
+        name="username"
+        required
+    >
+
+    <p>
+        Password
+    </p>
+
+    <input
+        type="password"
+        name="password"
+        required
+    >
+
+    <p>
+        Role
+    </p>
+
+    <select
+        name="role"
+    >
+
+        <option value="USER">
+            USER
+        </option>
+
+        <option value="ADMIN">
+            ADMIN
+        </option>
+
+    </select>
+
+    <p>
+        Expiration Date
+    </p>
+
+    <input
+        type="date"
+        name="expires_at"
+    >
+
+    <br><br>
+
+    <button type="submit">
+        Δημιουργία Χρήστη
+    </button>
+
+</form>
+
+<hr>
+    <table border="1">
+
+        <tr>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Expiration</th>
+            <th>Active</th>
+        </tr>
+
+        {% for user in users %}
+
+        <tr>
+            <td>{{ user.username }}</td>
+            <td>{{ user.role }}</td>
+            <td>{{ user.expires_at }}</td>
+            <td>{{ user.is_active }}</td>
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+</body>
+</html>

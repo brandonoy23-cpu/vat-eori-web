@@ -416,6 +416,54 @@ def authenticate_sqlite_user(
 
     return user
 
+def create_user(
+    username: str,
+    password_hash: str,
+    role: str,
+    expires_at: str | None,
+):
+    connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    try:
+
+        connection.execute(
+            """
+            INSERT INTO users
+            (
+                username,
+                password_hash,
+                role,
+                expires_at,
+                is_active,
+                created_at
+            )
+            VALUES
+            (
+                ?,
+                ?,
+                ?,
+                ?,
+                1,
+                ?
+            )
+            """,
+            (
+                username,
+                password_hash,
+                role,
+                expires_at,
+                datetime.now()
+                .isoformat(),
+            ),
+        )
+
+        connection.commit()
+
+    finally:
+
+        connection.close()
 def get_user_by_username(
     username: str,
 ):
@@ -1209,6 +1257,33 @@ def extract_rows(file_content: bytes):
     wb.close()
     if not rows: raise ValueError("Δεν βρέθηκαν εγγραφές.")
     return rows
+
+ITERATIONS = 600_000
+
+
+def make_hash(
+    password: str,
+) -> str:
+
+    salt = secrets.token_bytes(
+        32
+    )
+
+    value = hashlib.pbkdf2_hmac(
+        "sha256",
+        password.encode(
+            "utf-8"
+        ),
+        salt,
+        ITERATIONS,
+    )
+
+    return (
+        f"pbkdf2_sha256$"
+        f"{ITERATIONS}$"
+        f"{base64.b64encode(salt).decode('ascii')}$"
+        f"{base64.b64encode(value).decode('ascii')}"
+    )
 
 def verify_password(password: str, stored: str) -> bool:
     try:
@@ -2030,15 +2105,79 @@ async def admin_users(
             """
         ).fetchall()
 
-        return [
-            dict(user)
-            for user in users
-        ]
+        return templates.TemplateResponse(
+            request=request,
+            name="admin_users.html",
+            context={
+                "users": users,
+            },
+        )
 
     finally:
 
         connection.close()
- 
+@app.post("/admin/create-user")
+async def admin_create_user(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    role: str = Form(...),
+    expires_at: str = Form(""),
+):
+    require_admin(
+        request
+    )
+
+    connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    try:
+
+        connection.execute(
+            """
+            INSERT INTO users
+            (
+                username,
+                password_hash,
+                role,
+                expires_at,
+                is_active,
+                created_at
+            )
+            VALUES
+            (
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?
+            )
+            """,
+            (
+                username.strip(),
+                make_hash(
+                    password
+                ),
+                role,
+                expires_at or None,
+                1,
+                datetime.now()
+                .isoformat(),
+            ),
+        )
+
+        connection.commit()
+
+    finally:
+
+        connection.close()
+
+    return RedirectResponse(
+        "/admin/users",
+        status_code=303,
+    )
 @app.get("/health")
 async def health(request: Request):
     require_login(request)
