@@ -27,6 +27,7 @@ from fastapi import (
     UploadFile,
 )
 
+
 from fastapi.responses import (
     RedirectResponse,
     StreamingResponse,
@@ -1294,9 +1295,15 @@ def verify_password(password: str, stored: str) -> bool:
         return secrets.compare_digest(actual,expected)
     except Exception: return False
 
-def is_authenticated(request: Request) -> bool:
-    return request.session.get("authenticated") is True and request.session.get("username")==APP_USERNAME
+def is_authenticated(
+    request: Request,
+) -> bool:
 
+    return (
+        request.session.get(
+            "authenticated"
+        ) is True
+    )
 def redirect_login(request: Request):
     target=request.url.path + (("?"+request.url.query) if request.url.query else "")
     return RedirectResponse("/login?next_url="+quote(target,safe="/?=&"),status_code=303)
@@ -1306,6 +1313,11 @@ def require_login(request: Request):
 def require_admin(
     request: Request,
 ):
+    print(
+        "SESSION:",
+        dict(request.session)
+    )
+
     require_login(
         request
     )
@@ -1347,7 +1359,10 @@ async def login_submit(
     user = get_user_by_username(
         username.strip()
     )
-
+    print(
+    "LOGIN USER:",
+    user
+)
     if user is None:
         return templates.TemplateResponse(
             request=request,
@@ -1403,7 +1418,11 @@ async def login_submit(
             },
             status_code=401,
         )
-
+    print(
+    "LOGIN SUCCESS:",
+    user["username"],
+    user["role"]
+)
     request.session.clear()
 
     request.session[
@@ -1418,6 +1437,10 @@ async def login_submit(
         "role"
     ] = user["role"]
 
+    print(
+    "AFTER LOGIN SESSION:",
+    dict(request.session)
+)
     print(
     	"LOGIN:",
     	user["username"],
@@ -1526,7 +1549,16 @@ async def excel_page(request: Request):
         name="upload.html",
         context={
             "error": None,
+
             "t": get_texts(request),
+
+            "current_user": request.session.get(
+                "username"
+            ),
+
+            "current_role": request.session.get(
+                "role"
+            ),
         },
     )
 
@@ -2105,18 +2137,66 @@ async def admin_users(
             """
         ).fetchall()
 
+        total_users = len(
+            users
+        )
+
+        active_users = len(
+            [
+                u
+                for u in users
+                if u["is_active"] == 1
+            ]
+        )
+
+        disabled_users = len(
+            [
+                u
+                for u in users
+                if u["is_active"] == 0
+            ]
+        )
+
+        admin_users = len(
+            [
+                u
+                for u in users
+                if u["role"] == "ADMIN"
+            ]
+        )
+
         return templates.TemplateResponse(
             request=request,
             name="admin_users.html",
             context={
-    "users": users,
-    "error": request.query_params.get(
-        "error"
+                "users": users,
+          	"current_user": request.session.get(
+        "username"
     ),
-    "success": request.query_params.get(
-        "success"
-    ),
-},
+		"current_user": request.session.get(
+    "username"
+),
+
+		"current_role": request.session.get(
+    "role"
+),
+
+                "error": request.query_params.get(
+                    "error"
+                ),
+
+                "success": request.query_params.get(
+                    "success"
+                ),
+
+                "total_users": total_users,
+
+                "active_users": active_users,
+
+                "disabled_users": disabled_users,
+
+                "admin_users": admin_users,
+            },
         )
 
     finally:

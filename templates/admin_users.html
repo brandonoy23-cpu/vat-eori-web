@@ -23,9 +23,70 @@
 <body>
 
 <div class="container mt-4">
-</h1>
+<div class="card shadow-sm mb-4 border-0">
 
-<div class="container mt-4">
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+
+                <h2 class="mb-1">
+
+                    🧾 VAT & EORI Dashboard
+
+                </h2>
+
+                <small class="text-muted">
+
+                    Administration & Access Control
+
+                </small>
+
+            </div>
+
+            <div class="text-end">
+
+                <div class="fw-bold">
+
+                    👤 {{ current_user }}
+
+                </div>
+
+                {% if current_role == "ADMIN" %}
+
+                <span class="badge bg-dark">
+
+                    🛡️ ADMIN
+
+                </span>
+
+                {% else %}
+
+                <span class="badge bg-primary">
+
+                    👤 USER
+
+                </span>
+
+                {% endif %}
+
+                <br>
+
+                <a
+                    href="/logout"
+                    class="btn btn-outline-danger btn-sm mt-2"
+                >
+                    Logout
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
 <h1 class="mb-4">
     Διαχείριση Χρηστών
@@ -157,7 +218,92 @@
 
 </div>
 <hr>
-    <table class="table table-bordered table-hover align-middle">
+
+<div class="row mb-4">
+
+    <div class="col-md-3">
+
+        <div class="card border-primary shadow-sm">
+
+            <div class="card-body text-center">
+
+                <h6>
+                    👥 Σύνολο Χρηστών
+                </h6>
+
+                <h2>
+                    {{ total_users }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card border-success shadow-sm">
+
+            <div class="card-body text-center">
+
+                <h6>
+                    ✅ Ενεργοί
+                </h6>
+
+                <h2>
+                    {{ active_users }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card border-danger shadow-sm">
+
+            <div class="card-body text-center">
+
+                <h6>
+                    ⛔ Απενεργοποιημένοι
+                </h6>
+
+                <h2>
+                    {{ disabled_users }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card border-dark shadow-sm">
+
+            <div class="card-body text-center">
+
+                <h6>
+                    🛡️ Admins
+                </h6>
+
+                <h2>
+                    {{ admin_users }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<table class="table table-bordered table-hover">
 
         <tr>
     <th>Username</th>
