@@ -4,6 +4,7 @@ import hashlib
 import os
 import secrets
 import sqlite3
+import psycopg
 
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
@@ -80,13 +81,53 @@ LAST_RESULTS = {
 }
 
 DATABASE_FILE = "app.db"
+DATABASE_URL = os.getenv(
+    "DATABASE_URL"
+)
 RESULTS_DIRECTORY = Path(
     "job_results"
 )
 
+
 RESULTS_DIRECTORY.mkdir(
     exist_ok=True
 )
+def test_postgresql_connection():
+
+    if not DATABASE_URL:
+
+        print(
+            "PostgreSQL URL not configured"
+        )
+
+        return
+
+    try:
+
+        with psycopg.connect(
+            DATABASE_URL
+        ) as connection:
+
+            with connection.cursor() as cursor:
+
+                cursor.execute(
+                    "SELECT 1"
+                )
+
+                print(
+                    "PostgreSQL OK"
+                )
+
+    except Exception as error:
+
+        print(
+            "PostgreSQL Error:",
+            error
+        )
+
+
+test_postgresql_connection()
+
 
 def initialize_database():
 
@@ -95,6 +136,7 @@ def initialize_database():
     )
 
     try:
+
         cursor = connection.cursor()
 
         cursor.execute(
@@ -126,102 +168,26 @@ def initialize_database():
             )
             """
         )
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS users
-            (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-                username TEXT NOT NULL UNIQUE,
-
-                password_hash TEXT NOT NULL,
-
-                role TEXT NOT NULL,
-
-                expires_at TEXT,
-
-                is_active INTEGER NOT NULL DEFAULT 1,
-
-                created_at TEXT NOT NULL
-            )
-            """
-        )
 
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS users
             (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-
                 username TEXT UNIQUE NOT NULL,
-
                 password_hash TEXT NOT NULL,
-
                 role TEXT NOT NULL,
-
                 expires_at TEXT,
-
                 is_active INTEGER NOT NULL DEFAULT 1,
-
                 created_at TEXT NOT NULL
             )
             """
         )
-        connection.commit()
-
-    finally:
-        connection.close()
-def create_job(
-    total_rows: int,
-) -> int:
-    connection = sqlite3.connect(
-        DATABASE_FILE
-    )
-
-    try:
-        cursor = connection.cursor()
-
-        created_at = (
-            datetime.now()
-            .astimezone()
-            .isoformat()
-        )
-
-        cursor.execute(
-            """
-            INSERT INTO jobs
-            (
-                status,
-                total_rows,
-                processed_rows,
-                created_at,
-                updated_at
-            )
-            VALUES
-            (
-                ?,
-                ?,
-                ?,
-                ?,
-                ?
-            )
-            """,
-            (
-                "PENDING",
-                total_rows,
-                0,
-                created_at,
-                created_at,
-            ),
-        )
 
         connection.commit()
 
-        return int(
-            cursor.lastrowid
-        )
-
     finally:
+
         connection.close()
 
 
