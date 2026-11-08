@@ -2234,28 +2234,42 @@ async def admin_users(
         request
     )
 
-    connection = sqlite3.connect(
-        DATABASE_FILE
-    )
-
-    connection.row_factory = (
-        sqlite3.Row
-    )
-
     try:
 
-        users = connection.execute(
-            """
-            SELECT
-                id,
-                username,
-                role,
-                expires_at,
-                is_active
-            FROM users
-            ORDER BY username
-            """
-        ).fetchall()
+        with psycopg.connect(
+            DATABASE_URL
+        ) as connection:
+
+            with connection.cursor() as cursor:
+
+                cursor.execute(
+                    """
+                    SELECT
+                        id,
+                        username,
+                        role,
+                        expires_at,
+                        is_active
+                    FROM users
+                    ORDER BY username
+                    """
+                )
+
+                rows = cursor.fetchall()
+
+                users = []
+
+                for row in rows:
+
+                    users.append(
+                        {
+                            "id": row[0],
+                            "username": row[1],
+                            "role": row[2],
+                            "expires_at": row[3],
+                            "is_active": row[4],
+                        }
+                    )
 
         total_users = len(
             users
@@ -2277,7 +2291,7 @@ async def admin_users(
             ]
         )
 
-        admin_users = len(
+        admin_users_count = len(
             [
                 u
                 for u in users
@@ -2290,16 +2304,14 @@ async def admin_users(
             name="admin_users.html",
             context={
                 "users": users,
-          	"current_user": request.session.get(
-        "username"
-    ),
-		"current_user": request.session.get(
-    "username"
-),
 
-		"current_role": request.session.get(
-    "role"
-),
+                "current_user": request.session.get(
+                    "username"
+                ),
+
+                "current_role": request.session.get(
+                    "role"
+                ),
 
                 "error": request.query_params.get(
                     "error"
@@ -2315,13 +2327,31 @@ async def admin_users(
 
                 "disabled_users": disabled_users,
 
-                "admin_users": admin_users,
+                "admin_users": admin_users_count,
             },
         )
 
-    finally:
+    except Exception as error:
 
-        connection.close()
+        return templates.TemplateResponse(
+            request=request,
+            name="admin_users.html",
+            context={
+                "users": [],
+                "error": str(error),
+                "success": None,
+                "total_users": 0,
+                "active_users": 0,
+                "disabled_users": 0,
+                "admin_users": 0,
+                "current_user": request.session.get(
+                    "username"
+                ),
+                "current_role": request.session.get(
+                    "role"
+                ),
+            },
+        )
 @app.post("/admin/create-user")
 async def admin_create_user(
     request: Request,
