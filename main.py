@@ -263,7 +263,7 @@ def migrate_users_to_postgresql():
             "Migration error:",
             error
         )
-test_postgresql_connection()
+
 initialize_postgresql()
 
 
