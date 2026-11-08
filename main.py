@@ -265,7 +265,7 @@ def migrate_users_to_postgresql():
         )
 test_postgresql_connection()
 initialize_postgresql()
-migrate_users_to_postgresql()
+
 
 def initialize_database():
 
