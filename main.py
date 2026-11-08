@@ -572,43 +572,59 @@ def create_user(
 def get_user_by_username(
     username: str,
 ):
-    connection = sqlite3.connect(
-        DATABASE_FILE
-    )
 
-    connection.row_factory = (
-        sqlite3.Row
-    )
+    if not DATABASE_URL:
+
+        return None
 
     try:
 
-        row = connection.execute(
-            """
-            SELECT
-                id,
-                username,
-                password_hash,
-                role,
-                expires_at,
-                is_active
-            FROM users
-            WHERE username = ?
-            """,
-            (
-                username,
-            ),
-        ).fetchone()
+        with psycopg.connect(
+            DATABASE_URL
+        ) as connection:
 
-        if row is None:
-            return None
+            with connection.cursor() as cursor:
 
-        return dict(row)
+                cursor.execute(
+                    """
+                    SELECT
+                        id,
+                        username,
+                        password_hash,
+                        role,
+                        expires_at,
+                        is_active
+                    FROM users
+                    WHERE username = %s
+                    """,
+                    (
+                        username,
+                    ),
+                )
 
-    finally:
+                row = cursor.fetchone()
 
-        connection.close()
+                if row is None:
 
+                    return None
 
+                return {
+                    "id": row[0],
+                    "username": row[1],
+                    "password_hash": row[2],
+                    "role": row[3],
+                    "expires_at": row[4],
+                    "is_active": row[5],
+                }
+
+    except Exception as error:
+
+        print(
+            "PostgreSQL user lookup error:",
+            error
+        )
+
+        return None
 def ensure_default_admin():
     connection = sqlite3.connect(
         DATABASE_FILE
