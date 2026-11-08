@@ -126,8 +126,146 @@ def test_postgresql_connection():
         )
 
 
-test_postgresql_connection()
 
+def initialize_postgresql():
+
+    if not DATABASE_URL:
+
+        return
+
+    try:
+
+        with psycopg.connect(
+            DATABASE_URL
+        ) as connection:
+
+            with connection.cursor() as cursor:
+
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS users
+                    (
+                        id SERIAL PRIMARY KEY,
+
+                        username TEXT UNIQUE NOT NULL,
+
+                        password_hash TEXT NOT NULL,
+
+                        role TEXT NOT NULL,
+
+                        expires_at TEXT,
+
+                        is_active INTEGER NOT NULL DEFAULT 1,
+
+                        created_at TEXT NOT NULL
+                    )
+                    """
+                )
+
+            connection.commit()
+
+        print(
+            "PostgreSQL users table ready"
+        )
+
+    except Exception as error:
+
+        print(
+            "PostgreSQL table error:",
+            error
+        )
+
+def migrate_users_to_postgresql():
+
+    if not DATABASE_URL:
+
+        return
+
+    sqlite_connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    sqlite_connection.row_factory = (
+        sqlite3.Row
+    )
+
+    try:
+
+        users = sqlite_connection.execute(
+            """
+            SELECT
+                username,
+                password_hash,
+                role,
+                expires_at,
+                is_active,
+                created_at
+            FROM users
+            """
+        ).fetchall()
+
+    finally:
+
+        sqlite_connection.close()
+
+    try:
+
+        with psycopg.connect(
+            DATABASE_URL
+        ) as pg_connection:
+
+            with pg_connection.cursor() as cursor:
+
+                for user in users:
+
+                    cursor.execute(
+                        """
+                        INSERT INTO users
+                        (
+                            username,
+                            password_hash,
+                            role,
+                            expires_at,
+                            is_active,
+                            created_at
+                        )
+                        VALUES
+                        (
+                            %s,
+                            %s,
+                            %s,
+                            %s,
+                            %s,
+                            %s
+                        )
+                        ON CONFLICT (username)
+                        DO NOTHING
+                        """,
+                        (
+                            user["username"],
+                            user["password_hash"],
+                            user["role"],
+                            user["expires_at"],
+                            user["is_active"],
+                            user["created_at"],
+                        ),
+                    )
+
+            pg_connection.commit()
+
+        print(
+            f"Migrated {len(users)} users"
+        )
+
+    except Exception as error:
+
+        print(
+            "Migration error:",
+            error
+        )
+test_postgresql_connection()
+initialize_postgresql()
+migrate_users_to_postgresql()
 
 def initialize_database():
 
