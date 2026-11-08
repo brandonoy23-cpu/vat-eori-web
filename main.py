@@ -328,7 +328,61 @@ def initialize_database():
 
         connection.close()
 
+def create_job(
+    total_rows: int,
+) -> int:
 
+    connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    try:
+
+        cursor = connection.cursor()
+
+        created_at = (
+            datetime.now()
+            .astimezone()
+            .isoformat()
+        )
+
+        cursor.execute(
+            """
+            INSERT INTO jobs
+            (
+                status,
+                total_rows,
+                processed_rows,
+                created_at,
+                updated_at
+            )
+            VALUES
+            (
+                ?,
+                ?,
+                ?,
+                ?,
+                ?
+            )
+            """,
+            (
+                "PENDING",
+                total_rows,
+                0,
+                created_at,
+                created_at,
+            ),
+        )
+
+        connection.commit()
+
+        return int(
+            cursor.lastrowid
+        )
+
+    finally:
+
+        connection.close()
 def update_job_progress(
     job_id: int,
     processed_rows: int,
