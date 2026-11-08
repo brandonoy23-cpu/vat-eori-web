@@ -2364,75 +2364,88 @@ async def admin_create_user(
         request
     )
 
-    connection = sqlite3.connect(
-        DATABASE_FILE
-    )
-
     try:
 
-        existing_user = connection.execute(
-            """
-            SELECT id
-            FROM users
-            WHERE username = ?
-            """,
-            (
-                username.strip(),
-            ),
-        ).fetchone()
+        with psycopg.connect(
+            DATABASE_URL
+        ) as connection:
 
-        if existing_user:
+            with connection.cursor() as cursor:
 
-            return RedirectResponse(
-                "/admin/users?error=username_exists",
-                status_code=303,
-            )
+                cursor.execute(
+                    """
+                    SELECT id
+                    FROM users
+                    WHERE username = %s
+                    """,
+                    (
+                        username.strip(),
+                    ),
+                )
 
-        connection.execute(
-            """
-            INSERT INTO users
-            (
-                username,
-                password_hash,
-                role,
-                expires_at,
-                is_active,
-                created_at
-            )
-            VALUES
-            (
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?
-            )
-            """,
-            (
-                username.strip(),
-                make_hash(
-                    password
-                ),
-                role,
-                expires_at or None,
-                1,
-                datetime.now()
-                .isoformat(),
-            ),
+                existing_user = (
+                    cursor.fetchone()
+                )
+
+                if existing_user:
+
+                    return RedirectResponse(
+                        "/admin/users?error=username_exists",
+                        status_code=303,
+                    )
+
+                cursor.execute(
+                    """
+                    INSERT INTO users
+                    (
+                        username,
+                        password_hash,
+                        role,
+                        expires_at,
+                        is_active,
+                        created_at
+                    )
+                    VALUES
+                    (
+                        %s,
+                        %s,
+                        %s,
+                        %s,
+                        %s,
+                        %s
+                    )
+                    """,
+                    (
+                        username.strip(),
+                        make_hash(
+                            password
+                        ),
+                        role,
+                        expires_at or None,
+                        1,
+                        datetime.now()
+                        .isoformat(),
+                    ),
+                )
+
+            connection.commit()
+
+    except Exception as error:
+
+        print(
+            "Create user error:",
+            error
         )
 
-        connection.commit()
-
-    finally:
-
-        connection.close()
+        return RedirectResponse(
+            "/admin/users?error=create_failed",
+            status_code=303,
+        )
 
     return RedirectResponse(
-    "/admin/users?success=user_created",
-    status_code=303,
-)
-
+        "/admin/users?success=user_created",
+        status_code=303,
+    )
 @app.post(
     "/admin/disable-user/{user_id}"
 )
@@ -2444,28 +2457,24 @@ async def disable_user(
         request
     )
 
-    connection = sqlite3.connect(
-        DATABASE_FILE
-    )
+    with psycopg.connect(
+        DATABASE_URL
+    ) as connection:
 
-    try:
+        with connection.cursor() as cursor:
 
-        connection.execute(
-            """
-            UPDATE users
-            SET is_active = 0
-            WHERE id = ?
-            """,
-            (
-                user_id,
-            ),
-        )
+            cursor.execute(
+                """
+                UPDATE users
+                SET is_active = 0
+                WHERE id = %s
+                """,
+                (
+                    user_id,
+                ),
+            )
 
         connection.commit()
-
-    finally:
-
-        connection.close()
 
     return RedirectResponse(
         "/admin/users",
@@ -2482,28 +2491,24 @@ async def enable_user(
         request
     )
 
-    connection = sqlite3.connect(
-        DATABASE_FILE
-    )
+    with psycopg.connect(
+        DATABASE_URL
+    ) as connection:
 
-    try:
+        with connection.cursor() as cursor:
 
-        connection.execute(
-            """
-            UPDATE users
-            SET is_active = 1
-            WHERE id = ?
-            """,
-            (
-                user_id,
-            ),
-        )
+            cursor.execute(
+                """
+                UPDATE users
+                SET is_active = 1
+                WHERE id = %s
+                """,
+                (
+                    user_id,
+                ),
+            )
 
         connection.commit()
-
-    finally:
-
-        connection.close()
 
     return RedirectResponse(
         "/admin/users",
@@ -2521,29 +2526,25 @@ async def update_expiration(
         request
     )
 
-    connection = sqlite3.connect(
-        DATABASE_FILE
-    )
+    with psycopg.connect(
+        DATABASE_URL
+    ) as connection:
 
-    try:
+        with connection.cursor() as cursor:
 
-        connection.execute(
-            """
-            UPDATE users
-            SET expires_at = ?
-            WHERE id = ?
-            """,
-            (
-                expires_at,
-                user_id,
-            ),
-        )
+            cursor.execute(
+                """
+                UPDATE users
+                SET expires_at = %s
+                WHERE id = %s
+                """,
+                (
+                    expires_at,
+                    user_id,
+                ),
+            )
 
         connection.commit()
-
-    finally:
-
-        connection.close()
 
     return RedirectResponse(
         "/admin/users",
@@ -2564,36 +2565,33 @@ async def reset_password(
     if len(
         new_password
     ) < 10:
+
         return RedirectResponse(
             "/admin/users",
             status_code=303,
         )
 
-    connection = sqlite3.connect(
-        DATABASE_FILE
-    )
+    with psycopg.connect(
+        DATABASE_URL
+    ) as connection:
 
-    try:
+        with connection.cursor() as cursor:
 
-        connection.execute(
-            """
-            UPDATE users
-            SET password_hash = ?
-            WHERE id = ?
-            """,
-            (
-                make_hash(
-                    new_password
+            cursor.execute(
+                """
+                UPDATE users
+                SET password_hash = %s
+                WHERE id = %s
+                """,
+                (
+                    make_hash(
+                        new_password
+                    ),
+                    user_id,
                 ),
-                user_id,
-            ),
-        )
+            )
 
         connection.commit()
-
-    finally:
-
-        connection.close()
 
     return RedirectResponse(
         "/admin/users",
@@ -2610,49 +2608,45 @@ async def delete_user(
         request
     )
 
-    connection = sqlite3.connect(
-        DATABASE_FILE
-    )
+    with psycopg.connect(
+        DATABASE_URL
+    ) as connection:
 
-    connection.row_factory = sqlite3.Row
+        with connection.cursor() as cursor:
 
-    try:
-
-        row = connection.execute(
-            """
-            SELECT username
-            FROM users
-            WHERE id = ?
-            """,
-            (
-                user_id,
-            ),
-        ).fetchone()
-
-        if (
-            row
-            and row["username"] == "admin"
-        ):
-            return RedirectResponse(
-                "/admin/users",
-                status_code=303,
+            cursor.execute(
+                """
+                SELECT username
+                FROM users
+                WHERE id = %s
+                """,
+                (
+                    user_id,
+                ),
             )
 
-        connection.execute(
-            """
-            DELETE FROM users
-            WHERE id = ?
-            """,
-            (
-                user_id,
-            ),
-        )
+            row = cursor.fetchone()
+
+            if (
+                row
+                and row[0] == "admin"
+            ):
+                return RedirectResponse(
+                    "/admin/users",
+                    status_code=303,
+                )
+
+            cursor.execute(
+                """
+                DELETE FROM users
+                WHERE id = %s
+                """,
+                (
+                    user_id,
+                ),
+            )
 
         connection.commit()
-
-    finally:
-
-        connection.close()
 
     return RedirectResponse(
         "/admin/users",
