@@ -1655,6 +1655,17 @@ async def logout(request: Request):
     request.session.clear(); response=RedirectResponse("/login",status_code=303); response.delete_cookie("vat_eori_session"); return response
 
 @app.get("/change-user")
+async def change_user(request: Request):
+    request.session.clear()
+
+    response = RedirectResponse(
+        "/login?next_url=/excel",
+        status_code=303
+    )
+
+    response.delete_cookie("vat_eori_session")
+
+    return response
 @app.get("/set-language/{lang}")
 async def set_language(
     request: Request,

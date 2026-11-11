@@ -1,508 +1,304 @@
 <!DOCTYPE html>
 <html lang="el">
-
 <head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Διαχείριση Χρηστών</title>
+<style>
+:root{
+--ink:#0E1330;--ink-2:#1F2A5A;--cobalt:#3B5BFF;--violet:#7C5CFF;--amber:#FFB020;
+--mint:#12B76A;--mint-bg:#E9FAF2;--danger:#E5484D;--danger-bg:#FFF0F1;
+--canvas:#EDF0FA;--line:#DDE3F3;--text:#141A3A;--muted:#6B7494;--r-lg:22px;--r-md:14px;
+}
+*{box-sizing:border-box}
+body{margin:0;padding:24px 20px 56px;background:var(--canvas);color:var(--text);font-family:Inter,"Segoe UI",system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+.container{max-width:1180px;margin:0 auto}
+:focus-visible{outline:3px solid var(--cobalt);outline-offset:2px}
 
-    <meta charset="utf-8">
+/* Hero */
+.header{display:flex;justify-content:space-between;align-items:center;gap:32px;margin-bottom:20px;padding:28px 32px;border-radius:var(--r-lg);color:#fff;
+background:radial-gradient(520px 260px at 92% -30%,rgba(124,92,255,.65),transparent 70%),radial-gradient(420px 220px at 8% 130%,rgba(59,91,255,.5),transparent 70%),var(--ink);
+box-shadow:0 18px 40px -16px rgba(14,19,48,.55)}
+.branding{display:flex;align-items:center;gap:20px}
+.branding img{width:72px;height:72px;padding:8px;object-fit:contain;background:#fff;border-radius:20px}
+.branding h1{margin:0;font-size:clamp(24px,3vw,34px);line-height:1.1;font-weight:800;letter-spacing:-.025em}
+.branding p{margin:6px 0 0;font-size:14px;font-weight:600;color:#B9C3F5}
+.user-panel{text-align:right}
+.user-name{font-size:18px;font-weight:700}
+.user-role{display:inline-block;margin-top:6px;padding:3px 12px;border-radius:999px;background:rgba(255,176,32,.16);color:var(--amber);font-size:12px;font-weight:700}
+.logout{display:inline-block;margin-top:14px;padding:9px 16px;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;color:#FFD0D2;background:rgba(229,72,77,.2);border:1px solid rgba(229,72,77,.4);transition:background .15s,transform .15s}
+.logout:hover{background:rgba(229,72,77,.4);color:#fff;transform:translateY(-1px)}
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1"
-    >
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat{padding:18px;background:#fff;border:1px solid var(--line);border-radius:18px}
+.chip{display:grid;place-items:center;width:30px;height:30px;margin-bottom:10px;border-radius:10px;font-size:15px;font-weight:800;color:#fff;background:var(--cobalt)}
+.stat b{display:block;font-size:34px;line-height:1.05;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;font-weight:600;color:var(--muted)}
+.stat.ok{background:var(--mint-bg);border-color:#9BE3BE}.stat.ok .chip{background:var(--mint)}.stat.ok b{color:#0B6B3F}
+.stat.off{background:var(--danger-bg);border-color:#F5B5B8}.stat.off .chip{background:var(--danger)}.stat.off b{color:#A3262B}
+.stat.adm .chip{background:var(--ink)}
 
-    <title>
-        Διαχείριση Χρηστών
-    </title>
+/* Panels & alerts */
+.panel{margin-bottom:20px;padding:26px;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:0 20px 40px -26px rgba(14,19,48,.3)}
+.panel h2{margin:0 0 18px;font-size:18px;font-weight:800;letter-spacing:-.01em}
+.alert{margin-bottom:20px;padding:14px 18px;border:1px solid;border-radius:var(--r-md);font-weight:600}
+.alert.bad{color:#A3262B;background:var(--danger-bg);border-color:#F5B5B8}
+.alert.good{color:#0B6B3F;background:var(--mint-bg);border-color:#9BE3BE}
 
-    <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    >
+/* Form */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;align-items:end}
+label{display:block;margin-bottom:8px;font-size:14px;font-weight:700;color:var(--ink-2)}
+.in{width:100%;padding:12px 14px;font:inherit;font-size:15px;color:var(--text);background:#fff;border:1px solid var(--line);border-radius:12px}
+.in:focus{outline:0;border-color:var(--cobalt);box-shadow:0 0 0 4px rgba(59,91,255,.22)}
+select.in{padding-right:44px;appearance:none;cursor:pointer;
+background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%236B7494' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m2 5 5 5 5-5'/%3E%3C/svg%3E") no-repeat right 16px center}
+.inline{display:flex;gap:8px;align-items:center}
+.inline .in{min-width:0}
 
+/* Buttons */
+.btn{padding:12px 18px;font:inherit;font-size:14px;font-weight:700;white-space:nowrap;border:1px solid transparent;border-radius:12px;cursor:pointer;transition:filter .15s,transform .15s}
+.btn:hover{filter:brightness(.95)}
+.btn-primary{width:100%;padding:13px 18px;font-size:15px;font-weight:800;color:var(--ink);background:var(--amber);box-shadow:0 12px 24px -10px rgba(245,158,11,.85)}
+.btn-primary:hover{filter:none;background:#FFC043;transform:translateY(-1px)}
+.btn-ghost{color:var(--ink-2);background:#fff;border-color:var(--line)}
+.btn-sm{padding:7px 12px;font-size:13px;border-radius:10px}
+.t-blue{color:var(--cobalt);background:#EEF2FF}
+.t-amber{color:#8A5200;background:#FFF6E0}
+.t-mint{color:#0B6B3F;background:var(--mint-bg)}
+.t-red{color:#A3262B;background:var(--danger-bg)}
+.t-ink{color:#fff;background:var(--ink)}
+
+/* Table */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{padding:0 14px 12px;text-align:left;font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap;border-bottom:1px solid var(--line)}
+td{padding:14px;vertical-align:middle;border-bottom:1px solid var(--line)}
+tbody tr:hover{background:#F6F8FE}
+tbody tr:last-child td{border-bottom:0}
+.username{font-weight:700}
+.pill{display:inline-block;padding:3px 12px;border-radius:999px;font-size:12px;font-weight:700}
+.pill.admin{color:#fff;background:var(--ink)}
+.pill.user{color:var(--cobalt);background:#EEF2FF}
+.pill.on{color:#0B6B3F;background:var(--mint-bg)}
+.pill.off{color:#A3262B;background:var(--danger-bg)}
+td .in{padding:8px 10px;font-size:14px}
+
+@media(max-width:900px){
+.stats{grid-template-columns:1fr 1fr}
+.header{flex-direction:column;align-items:flex-start;padding:22px}
+.user-panel{text-align:left}
+.panel{padding:20px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
 </head>
 <body>
+<div class="container">
 
-<div class="container mt-4">
-<div class="card shadow-sm mb-4 border-0">
-
-    <div class="card-body">
-
-        <div class="d-flex justify-content-between align-items-center">
-
-            <div>
-
-                <h2 class="mb-1">
-
-                    🧾 VAT & EORI Dashboard
-
-                </h2>
-
-                <small class="text-muted">
-
-                    Administration & Access Control
-
-                </small>
-
-            </div>
-
-            <div class="text-end">
-
-                <div class="fw-bold">
-
-                    👤 {{ current_user }}
-
-                </div>
-
-                {% if current_role == "ADMIN" %}
-
-                <span class="badge bg-dark">
-
-                    🛡️ ADMIN
-
-                </span>
-
-                {% else %}
-
-                <span class="badge bg-primary">
-
-                    👤 USER
-
-                </span>
-
-                {% endif %}
-
-                <br>
-
-                <a
-                    href="/logout"
-                    class="btn btn-outline-danger btn-sm mt-2"
-                >
-                    Logout
-                </a>
-
-            </div>
-
+<header class="header">
+    <div class="branding">
+        <img src="/static/images/logo.PNG" alt="Logo">
+        <div>
+            <h1>Διαχείριση χρηστών</h1>
+            <p>VAT &amp; EORI Verification Portal</p>
         </div>
-
     </div>
 
-</div>
-
-<h1 class="mb-4">
-    Διαχείριση Χρηστών
-</h1>
+    <div class="user-panel">
+        <div class="user-name">{{ current_user }}</div>
+        {% if current_role == "ADMIN" %}
+        <span class="user-role">ADMIN</span>
+        {% else %}
+        <span class="user-role">USER</span>
+        {% endif %}
+        <br>
+        <a href="/logout" class="logout">Αποσύνδεση</a>
+    </div>
+</header>
 
 {% if error == "username_exists" %}
-
-<div class="alert alert-danger">
-</div>
-
+<div class="alert bad">Το όνομα χρήστη υπάρχει ήδη. Δοκίμασε διαφορετικό username.</div>
 {% endif %}
 
 {% if success == "user_created" %}
-
-<div class="alert alert-success">
-    </div>
-
+<div class="alert good">Ο χρήστης δημιουργήθηκε.</div>
 {% endif %}
 
-<hr>
-
-<div class="card shadow-sm mb-4">
-
-    <div class="card-header">
-
-        <h4 class="mb-0">
-            Νέος Χρήστης
-        </h4>
-
+<section class="stats">
+    <div class="stat">
+        <div class="chip">&Sigma;</div>
+        <b>{{ total_users }}</b>
+        <span>Σύνολο χρηστών</span>
     </div>
+    <div class="stat ok">
+        <div class="chip">&#10003;</div>
+        <b>{{ active_users }}</b>
+        <span>Ενεργοί</span>
+    </div>
+    <div class="stat off">
+        <div class="chip">&#10005;</div>
+        <b>{{ disabled_users }}</b>
+        <span>Απενεργοποιημένοι</span>
+    </div>
+    <div class="stat adm">
+        <div class="chip">A</div>
+        <b>{{ admin_users }}</b>
+        <span>Admins</span>
+    </div>
+</section>
 
-    <div class="card-body">
+<section class="panel">
+    <h2>Νέος χρήστης</h2>
 
-        <form
-            method="post"
-            action="/admin/create-user"
-        >
+    <form method="post" action="/admin/create-user">
+        <div class="form-grid">
 
-            <div class="mb-3">
-
-                <label class="form-label">
-                    Username
-                </label>
-
-                <input
-                    type="text"
-                    name="username"
-                    class="form-control"
-                    required
-                >
-
+            <div>
+                <label for="new-user-name">Username</label>
+                <input type="text" id="new-user-name" name="username" class="in" required>
             </div>
 
-            <div class="mb-3">
-
-                <label class="form-label">
-                    Password
-                </label>
-
-                <div class="d-flex gap-2">
-
-                    <input
-                        type="text"
-                        id="new-user-password"
-                        name="password"
-                        class="form-control"
-                        required
-                    >
-
-                    <button
-                        type="button"
-                        class="btn btn-secondary"
-                        onclick="generatePassword()"
-                    >
-                        Generate
-                    </button>
-
+            <div>
+                <label for="new-user-password">Password</label>
+                <div class="inline">
+                    <input type="text" id="new-user-password" name="password" class="in" required>
+                    <button type="button" class="btn btn-ghost" onclick="generatePassword()">Δημιουργία</button>
                 </div>
-
             </div>
 
-            <div class="mb-3">
-
-                <label class="form-label">
-                    Role
-                </label>
-
-                <select
-                    name="role"
-                    class="form-select"
-                >
-
-                    <option value="USER">
-                        USER
-                    </option>
-
-                    <option value="ADMIN">
-                        ADMIN
-                    </option>
-
+            <div>
+                <label for="new-user-role">Ρόλος</label>
+                <select id="new-user-role" name="role" class="in">
+                    <option value="USER">USER</option>
+                    <option value="ADMIN">ADMIN</option>
                 </select>
-
             </div>
 
-            <div class="mb-3">
-
-                <label class="form-label">
-                    Expiration Date
-                </label>
-
-                <input
-                    type="date"
-                    name="expires_at"
-                    class="form-control"
-                >
-
+            <div>
+                <label for="new-user-expires">Ημερομηνία λήξης</label>
+                <input type="date" id="new-user-expires" name="expires_at" class="in">
             </div>
 
-            <button
-                type="submit"
-                class="btn btn-primary"
-            >
-                Δημιουργία Χρήστη
-            </button>
-
-        </form>
-
-    </div>
-
-</div>
-<hr>
-
-<div class="row mb-4">
-
-    <div class="col-md-3">
-
-        <div class="card border-primary shadow-sm">
-
-            <div class="card-body text-center">
-
-                <h6>
-                    👥 Σύνολο Χρηστών
-                </h6>
-
-                <h2>
-                    {{ total_users }}
-                </h2>
-
+            <div>
+                <button type="submit" class="btn btn-primary">Δημιουργία χρήστη</button>
             </div>
 
         </div>
+    </form>
+</section>
 
-    </div>
+<section class="panel">
+    <h2>Χρήστες</h2>
 
-    <div class="col-md-3">
-
-        <div class="card border-success shadow-sm">
-
-            <div class="card-body text-center">
-
-                <h6>
-                    ✅ Ενεργοί
-                </h6>
-
-                <h2>
-                    {{ active_users }}
-                </h2>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="col-md-3">
-
-        <div class="card border-danger shadow-sm">
-
-            <div class="card-body text-center">
-
-                <h6>
-                    ⛔ Απενεργοποιημένοι
-                </h6>
-
-                <h2>
-                    {{ disabled_users }}
-                </h2>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="col-md-3">
-
-        <div class="card border-dark shadow-sm">
-
-            <div class="card-body text-center">
-
-                <h6>
-                    🛡️ Admins
-                </h6>
-
-                <h2>
-                    {{ admin_users }}
-                </h2>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<table class="table table-bordered table-hover">
-
+    <div class="table-wrap">
+    <table>
+        <thead>
         <tr>
-    <th>Username</th>
-    <th>Role</th>
-    <th>Expiration</th>
-    <th>Active</th>
-    <th>Actions</th>
-    <th>Password</th>
-</tr>
+            <th>Username</th>
+            <th>Ρόλος</th>
+            <th>Λήξη</th>
+            <th>Κατάσταση</th>
+            <th>Ενέργειες</th>
+            <th>Νέος κωδικός</th>
+        </tr>
+        </thead>
+        <tbody>
 
         {% for user in users %}
+        <tr>
 
-<tr>
+            <td class="username">{{ user.username }}</td>
 
-    <td>
-        {{ user.username }}
-    </td>
+            <td>
+                {% if user.role == "ADMIN" %}
+                <span class="pill admin">ADMIN</span>
+                {% else %}
+                <span class="pill user">USER</span>
+                {% endif %}
+            </td>
 
-    <td>
+            <td>
+                <form method="post" action="/admin/update-expiration/{{ user.id }}" class="inline">
+                    <input type="date" name="expires_at" value="{{ user.expires_at }}" class="in">
+                    <button type="submit" class="btn btn-sm t-blue">Αποθήκευση</button>
+                </form>
+            </td>
 
-    {% if user.role == "ADMIN" %}
+            <td>
+                {% if user.is_active == 1 %}
+                <span class="pill on">Ενεργός</span>
+                {% else %}
+                <span class="pill off">Απενεργοποιημένος</span>
+                {% endif %}
+            </td>
 
-        <span class="badge bg-dark">
-            ADMIN
-        </span>
+            <td>
+                <div class="inline">
 
-    {% else %}
+                {% if user.username == "admin" %}
 
-        <span class="badge bg-primary">
-            USER
-        </span>
+                    <span class="pill admin">Προστατευμένος</span>
 
-    {% endif %}
+                {% else %}
 
-</td>
+                    {% if user.is_active == 1 %}
+                    <form method="post" action="/admin/disable-user/{{ user.id }}">
+                        <button type="submit" class="btn btn-sm t-amber">Απενεργοποίηση</button>
+                    </form>
+                    {% else %}
+                    <form method="post" action="/admin/enable-user/{{ user.id }}">
+                        <button type="submit" class="btn btn-sm t-mint">Ενεργοποίηση</button>
+                    </form>
+                    {% endif %}
 
-    <td>
+                    <form method="post" action="/admin/delete-user/{{ user.id }}" onsubmit="return confirm('Διαγραφή χρήστη;');">
+                        <button type="submit" class="btn btn-sm t-red">Διαγραφή</button>
+                    </form>
 
-        <form
-            method="post"
-            action="/admin/update-expiration/{{ user.id }}"
-        >
+                {% endif %}
 
-            <input
-                type="date"
-                name="expires_at"
-                value="{{ user.expires_at }}"
-            >
+                </div>
+            </td>
 
-            <button
-                type="submit"
-		class="btn btn-primary btn-sm"
-            >
-                Save
-            </button>
+            <td>
+                <form method="post" action="/admin/reset-password/{{ user.id }}" class="inline">
+                    <input type="password" name="new_password" placeholder="Νέος κωδικός" class="in" required>
+                    <button type="submit" class="btn btn-sm t-ink">Επαναφορά</button>
+                </form>
+            </td>
 
-        </form>
-
-    </td>
-
-    <td>
-
-    {% if user.is_active == 1 %}
-
-        <span class="badge bg-success">
-            Active
-        </span>
-
-    {% else %}
-
-        <span class="badge bg-danger">
-            Disabled
-        </span>
-
-    {% endif %}
-
-</td>
-
-    <td>
-
-    <div class="d-flex flex-column gap-1">
-
-        {% if user.username == "admin" %}
-
-            <span class="badge bg-dark">
-                Protected
-            </span>
-
-        {% else %}
-
-            {% if user.is_active == 1 %}
-
-            <form
-                method="post"
-                action="/admin/disable-user/{{ user.id }}"
-            >
-                <button
-                    type="submit"
-                    class="btn btn-warning btn-sm w-100"
-                >
-                    Disable
-                </button>
-            </form>
-
-            {% else %}
-
-            <form
-                method="post"
-                action="/admin/enable-user/{{ user.id }}"
-            >
-                <button
-                    type="submit"
-                    class="btn btn-success btn-sm w-100"
-                >
-                    Enable
-                </button>
-            </form>
-
-            {% endif %}
-
-            <form
-                method="post"
-                action="/admin/delete-user/{{ user.id }}"
-                onsubmit="return confirm('Διαγραφή χρήστη;');"
-            >
-                <button
-                    type="submit"
-                    class="btn btn-danger btn-sm w-100"
-                >
-                    Delete
-                </button>
-            </form>
-
-        {% endif %}
-
-    </div>
-
-</td>
-
-
-    <td>
-
-        <form
-            method="post"
-            action="/admin/reset-password/{{ user.id }}"
-        >
-
-            <input
-                type="password"
-                name="new_password"
-                placeholder="New password"
-                required
-            >
-
-            <button
-                type="submit"
-		class="btn btn-success btn-sm"
-            >
-                Reset
-            </button>
-
-        </form>
-
-    </td>
-
-</tr>
-
-
+        </tr>
         {% endfor %}
 
+        </tbody>
     </table>
     </div>
+</section>
 
 </div>
-<script>
 
+<script>
 function generatePassword()
 {
     const chars =
         "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
 
+    const values = new Uint32Array(14);
+    crypto.getRandomValues(values);
+
     let password = "";
 
-    for (let i = 0; i < 14; i++)
+    for (let i = 0; i < values.length; i++)
     {
-        password += chars.charAt(
-            Math.floor(
-                Math.random() * chars.length
-            )
-        );
+        password += chars.charAt(values[i] % chars.length);
     }
 
     document.getElementById(
         "new-user-password"
     ).value = password;
 }
-
 </script>
-</div>
 
 </body>
 </html>
